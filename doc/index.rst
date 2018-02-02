@@ -1,21 +1,25 @@
 .. _camera-zwo:
 
-Zwo
----
+Zwo (Zhen Wang Optical)
+-----------------------
 
-Please fill it
+.. image:: asi178mm.png
+
 
 Introduction
 ````````````
-TO DO
+
+ZWO offers a large choice of cameras for astronomical applications. The cameras
+are connected via USB. The delivered driver library is available for Linux,
+Mac, and Windows.
+
+The LImA module has been tested with the ASI 178MM-Cool model on Linux.
 
 Prerequisite
 ````````````
-TO DO
-
 
 Installation & Module configuration
-````````````````````````````````````
+```````````````````````````````````
 
 -  follow first the steps for the linux installation :ref:`linux_installation`
 -  follow first the steps for the windows installation :ref:`windows_installation`
@@ -71,21 +75,23 @@ The minimum configuration file is *config.inc* :
 -  finally for the Tango server installation :ref:`tango_installation`
 
 Initialisation and Capabilities
-````````````````````````````````
-In order to help people to understand how the camera plugin has been implemented in LImA this section
-provide some important information about the developer's choices.
+```````````````````````````````
+In order to help people to understand how the camera plugin has been implemented
+in LImA this section provide some important information about the developer's
+choices.
 
 Camera initialisation
-......................
+.....................
 
 TODO
 
 Std capabilites
-................
+...............
 
-This plugin has been implement in respect of the mandatory capabilites but with some limitations according 
-to some programmer's  choices.  We only provide here extra information for a better understanding
-of the capabilities for the simulator camera.
+This plugin has been implement in respect of the mandatory capabilites but with
+some limitations according to some programmer's  choices.  We only provide here
+extra information for a better understanding of the capabilities for the Zwo
+camera.
 
 * HwDetInfo
   
@@ -97,11 +103,40 @@ TODO
   
 
 Optional capabilites
-........................
-In addition to the standard capabilities, we make the choice to implement some optional capabilities in order to 
-have an improved simulation.
+....................
+
+In addition to the standard capabilities, we make the choice to implement some
+optional capabilities in order to have an improved simulation.
 
 TODO
+
+* BinCtrl
+
+  TODO
+
+* BufferCtrl
+
+  TODO
+
+* FlipCtrl
+
+  TODO
+
+* RoiCtrl
+
+  TODO
+
+* ShutterCtrl
+
+  TODO
+
+* SavingCtrl
+
+  TODO
+
+* VideoCtrl
+
+  TODO
 
 Configuration
 `````````````
@@ -110,8 +145,9 @@ TODO
 
 
 How to use
-````````````
-The LimaCCDs tango server provides a complete interface to the zwo plugin so feel free to test.
+``````````
+The LimaCCDs tango server provides a complete interface to the zwo plugin so
+feel free to test.
 
 For a quick test one can use python, is this a short code example:
 
@@ -121,23 +157,23 @@ For a quick test one can use python, is this a short code example:
   from lima import Core
   import time
 
-  TODO 
+  cam = Zwo.Camera(0)
+  hwint = Zwo.Interface(cam)
 
   control = Core.CtControl(hwint)
 
   acq = control.acquisition()
 
   # setting new file parameters and autosaving mode
-  saving=control.saving()
+  saving = control.saving()
 
-  pars=saving.getParameters()
-  pars.directory='/tmp/'
-  pars.prefix='testsimul_'
-  pars.suffix='.edf'
-  pars.fileFormat=Core.CtSaving.EDF
-  pars.savingMode=Core.CtSaving.AutoFrame
+  pars = saving.getParameters()
+  pars.directory = '/tmp/'
+  pars.prefix = 'testsimul_'
+  pars.suffix = '.edf'
+  pars.fileFormat = Core.CtSaving.EDF
+  pars.savingMode = Core.CtSaving.AutoFrame
   saving.setParameters(pars)
-
 
   # now ask for 2 sec. exposure and 10 frames
   acq.setAcqExpoTime(2)
@@ -148,12 +184,9 @@ For a quick test one can use python, is this a short code example:
 
   # wait for last image (#9) ready
   lastimg = control.getStatus().ImageCounters.LastImageReady
-  while lastimg !=9:
-    time.sleep(0.1)
-    lastimg = control.getStatus().ImageCounters.LastImageReady
+  while lastimg != 9:
+      time.sleep(0.1)
+      lastimg = control.getStatus().ImageCounters.LastImageReady
  
   # read the first image
   im0 = control.ReadImage(0)
-  
-
-  

@@ -1,3 +1,4 @@
+#  -*- coding: utf-8 -*-
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
@@ -16,34 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
-zwo-objs = ZwoCamera.o ZwoInterface.o ZwoDetInfoCtrObj.o ZwoBufferCtrlObj.o \
-	ZwoSyncCtrlObj.o \
-	ZwoRoiCtrlObj.o ZwoBinCtrlObj.o ZwoVideoCtrlObj.o ZwoShutterCtrlObj.o \
-	ZwoFlipCtrlObj.o ZwoSavingCtrlObj.o
+from Lima import Core
+from limazwo import Zwo as _Z
 
-SRCS = $(zwo-objs:.o=.cpp)
-
-CXX = g++
-INC = -I../sdk/include -I../include -I../../../common/include -I../../../hardware/include
-CXXFLAGS += $(INC) -Wall -pthread -fPIC -g
-
-all:	Zwo.o
-
-Zwo.o:	$(zwo-objs)
-	$(LD) -o $@ -r $+
-
-clean:
-	rm -f *.o *.P
-
-%.o : %.cpp
-	$(COMPILE.cpp) -MD $(CXXFLAGS) -o $@ $<
-	@cp $*.d $*.P; \
-	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-	-e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
-	rm -f $*.d
-
--include $(SRCS:.cpp=.P)
-
-.PHONY: check-syntax
-check-syntax:
-	$(CXX) -Wall -Wextra -fsyntax-only $(CXXFLAGS) $(CHK_SOURCES)
+globals().update(_Z.__dict__)
