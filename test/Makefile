@@ -16,34 +16,35 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
-zwo-objs = ZwoCamera.o ZwoInterface.o ZwoDetInfoCtrObj.o ZwoBufferCtrlObj.o \
-	ZwoSyncCtrlObj.o \
-	ZwoRoiCtrlObj.o ZwoBinCtrlObj.o ZwoVideoCtrlObj.o ZwoShutterCtrlObj.o \
-	ZwoFlipCtrlObj.o ZwoSavingCtrlObj.o
 
-SRCS = $(zwo-objs:.o=.cpp)
+this-dir	:= $(shell pwd)
+lima-dir	:= $(this-dir)/../../..
+LIMA_DIR = $(lima-dir)
 
-CXX = g++
-INC = -I../sdk/include -I../include -I../../../common/include -I../../../hardware/include
-CXXFLAGS += $(INC) -Wall -pthread -fPIC -g
+zwo-objs = ../src/Zwo.o
 
-all:	Zwo.o
+CPPFLAGS = -I ../include \
+	   -I ../../../include \
+	   -I ../../../common/include \
+	   -I ../../../hardware/include \
+	   -I ../../../control/include \
+	   -I ../../../third-party/Processlib/core/include \
+	   -I ../sdk/include \
+	   -Wall -pthread -g
+# -fPIC
 
-Zwo.o:	$(zwo-objs)
-	$(LD) -o $@ -r $+
+PROCESSOR_TYPE := $(shell uname -m)
+ifeq ($(PROCESSOR_TYPE),x86_64)
+ZWO_LDFLAGS	:= -L$(LIMA_DIR)/camera/zwo/sdk/lib/x64
+else ifeq ($(PROCESSOR_TYPE),armv7l)
+ZWO_LDFLAGS	:= -L$(LIMA_DIR)/camera/zwo/sdk/lib/armv7
+else
+ZWO_LDFLAGS	:= -L$(LIMA_DIR)/camera/zwo/sdk/lib/$(PROCESSOR_TYPE)
+endif
+
+LDFLAGS = -L../../../build -llimazwo -llimacore $(ZWO_LDFLAGS) -lASICamera2
+
+all:	test_camera
 
 clean:
-	rm -f *.o *.P
-
-%.o : %.cpp
-	$(COMPILE.cpp) -MD $(CXXFLAGS) -o $@ $<
-	@cp $*.d $*.P; \
-	sed -e 's/#.*//' -e 's/^[^:]*: *//' -e 's/ *\\$$//' \
-	-e '/^$$/ d' -e 's/$$/ :/' < $*.d >> $*.P; \
-	rm -f $*.d
-
--include $(SRCS:.cpp=.P)
-
-.PHONY: check-syntax
-check-syntax:
-	$(CXX) -Wall -Wextra -fsyntax-only $(CXXFLAGS) $(CHK_SOURCES)
+	rm -f *.o test_camera
