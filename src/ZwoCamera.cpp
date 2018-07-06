@@ -240,6 +240,7 @@ lima::HwInterface::StatusType lima::Zwo::Camera::getStatus(void)
 					status.set(lima::HwInterface::StatusType::Exposure);
 					break;
 				default:
+					DEB_WARNING() << "Camera lib is in Fault state. Camera has to be reset.";
 					status.set(lima::HwInterface::StatusType::Fault);
 			}
 		}
@@ -299,6 +300,22 @@ void lima::Zwo::Camera::prepareAcq(void)
 void lima::Zwo::Camera::reset(void)
 {
 	DEB_MEMBER_FUNCT();
+	if (id() != -1)
+	{
+		// This state sometimes happens but there is no way to get out of it
+		// the proposed way is to take another picture
+		// the sleep time between start and stop was tested from outside the
+		// driver via TANGO interface maybe it could be shorter
+		lima::HwInterface::StatusType status = getStatus();
+		if (status.acq == AcqFault)
+		{
+			DEB_ALWAYS() << "Camera lib is in Fault state. Have to take a short time picture.";
+			prepareAcq();
+			startAcq();
+			usleep(500000);
+			stopAcq();
+		}
+	}
 }
 
 void lima::Zwo::Camera::setNbFrames(const int nb_frames)
