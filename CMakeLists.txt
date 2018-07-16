@@ -20,7 +20,6 @@ set(NAME "zwo")
 
 if(UNIX)
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--add-needed")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pthread -fPIC -g")
 endif()
 
 
@@ -36,7 +35,7 @@ target_include_directories(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/inclu
 target_include_directories(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/sdk/include")
 
 #LIBRARY
-find_library(LIB_ZWO ASICamera2 "${CMAKE_CURRENT_SOURCE_DIR}/sdk/lib/")
+find_library(LIB_ZWO ASICamera2 "${CMAKE_CURRENT_SOURCE_DIR}/sdk/lib/x64")
 if (("${LIB_ZWO}" STREQUAL "LIB_ZWO-NOTFOUND"))
 	message(FATAL_ERROR "${NAME} : libASICamera2 not found")
 endif()
