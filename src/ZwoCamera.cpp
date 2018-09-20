@@ -53,6 +53,7 @@ void ::lima::Zwo::Camera::_AcqThread::threadFunction()
 
 	DEB_TRACE() << "Camera thread started: " << DEB_VAR1(m_cam.m_quit);
 	AutoMutex aLock(m_cam.m_cond.mutex());
+	ASISetControlValue(m_cam.id(), ASI_GAIN, 0, ASI_FALSE);
 
 	while (!m_cam.m_quit)
 	{
