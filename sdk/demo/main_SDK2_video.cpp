@@ -30,6 +30,7 @@ extern unsigned long GetTickCount();
 int bDisplay = 0;
 int bMain = 1;
 int bChangeFormat = 0;
+int bSendTiggerSignal = 0;
 ASI_CAMERA_INFO CamInfo;
 enum CHANGE{
 	change_imagetype = 0,
@@ -73,6 +74,10 @@ void* Display(void* params)
 			bChangeFormat = true;
 			change = change_size_bigger;
 			break;
+
+			case 't'://trigger
+			bSendTiggerSignal = true;
+			break;
 		}
 	}
 END:
@@ -91,6 +96,7 @@ int  main()
 	int i;
 	char c;
 	bool bresult;
+	int modeIndex;
 
 	int time1,time2;
 	int count=0;
@@ -98,6 +104,8 @@ int  main()
 	char buf[128]={0};
 
 	int CamIndex=0;
+	int inputformat;
+	int definedformat;
 
 
 	IplImage *pRgb;
@@ -153,32 +161,124 @@ int  main()
 		printf("%s\n", ctrlcap.Name);
 
 	}
+/*
+	ASI_SUPPORTED_MODE cammode;
+	ASI_CAMERA_MODE mode;
+	if(CamInfo.IsTriggerCam)
+	{
+		i = 0;
+		printf("This is multi mode camera, you need to select the camera mode:\n");
+		ASIGetCameraSupportMode(CamInfo.CameraID, &cammode);
+		while(cammode.SupportedCameraMode[i]!= ASI_MODE_END)
+		{
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_NORMAL)
+				printf("%d:Normal Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_SOFT_EDGE)
+				printf("%d:Trigger Soft Edge Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_RISE_EDGE)
+				printf("%d:Trigger Rise Edge Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_FALL_EDGE)
+				printf("%d:Trigger Fall Edge Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_SOFT_LEVEL)
+				printf("%d:Trigger Soft Level Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_HIGH_LEVEL)
+				printf("%d:Trigger High Level Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_LOW_LEVEL)
+				printf("%d:Trigger Low  Lovel Mode\n", i);
 
-	printf("\nPlease input the <width height bin image_type> with one space, ie. 640 480 2 0. use max resolution if input is 0. Press ESC when video window is focused to quit capture\n");
+			i++;
+		}
+
+		scanf("%d", &modeIndex);
+		ASISetCameraMode(CamInfo.CameraID, cammode.SupportedCameraMode[modeIndex]);
+		ASIGetCameraMode(CamInfo.CameraID, &mode);
+		if(mode != cammode.SupportedCameraMode[modeIndex])
+			printf("Set mode failed!\n");
+
+	}
+*/
 	int bin = 1, Image_type;
-	scanf("%d %d %d %d", &width, &height, &bin, &Image_type);
-	if(width == 0 || height == 0)
+	printf("Use customer format or predefined fromat resolution?\n 0:customer format \n 1:predefined format\n");
+	scanf("%d", &inputformat);
+	if(inputformat)
 	{
-		width = iMaxWidth;
-		height = iMaxHeight;
+		printf("0:Size %d X %d, BIN 1, ImgType raw8\n", iMaxWidth, iMaxHeight);
+		printf("1:Size %d X %d, BIN 1, ImgType raw16\n", iMaxWidth, iMaxHeight);
+		printf("2:Size 1920 X 1080, BIN 1, ImgType raw8\n");
+		printf("3:Size 1920 X 1080, BIN 1, ImgType raw16\n");
+		printf("4:Size 320 X 240, BIN 2, ImgType raw8\n");
+		scanf("%d", &definedformat);
+		if(definedformat == 0)
+		{
+			ASISetROIFormat(CamInfo.CameraID, iMaxWidth, iMaxHeight, 1, ASI_IMG_RAW8);
+			width = iMaxWidth;
+			height = iMaxHeight;
+			bin = 1;
+			Image_type = ASI_IMG_RAW8;
+		}
+		else if(definedformat = 1)
+		{
+			ASISetROIFormat(CamInfo.CameraID, iMaxWidth, iMaxHeight, 1, ASI_IMG_RAW16);
+			width = iMaxWidth;
+			height = iMaxHeight;
+			bin = 1;
+			Image_type = ASI_IMG_RAW16;
+		}
+		else if(definedformat == 2)
+		{
+			ASISetROIFormat(CamInfo.CameraID, 1920, 1080, 1, ASI_IMG_RAW8);
+			width = 1920;
+			height = 1080;
+			bin = 1;
+			Image_type = ASI_IMG_RAW8;
+		}
+		else if(definedformat == 3)
+		{
+			ASISetROIFormat(CamInfo.CameraID, 1920, 1080, 1, ASI_IMG_RAW16);
+			width = 1920;
+			height = 1080;
+			bin = 1;
+			Image_type = ASI_IMG_RAW16;
+		}
+		else if(definedformat == 4)
+		{
+			ASISetROIFormat(CamInfo.CameraID, 320, 240, 2, ASI_IMG_RAW8);
+			width = 320;
+			height = 240;
+			bin = 2;
+			Image_type = ASI_IMG_RAW8;
+
+		}
+		else
+		{
+			printf("Wrong input! Will use the resolution0 as default.\n");
+			ASISetROIFormat(CamInfo.CameraID, iMaxWidth, iMaxHeight, 1, ASI_IMG_RAW8);
+			width = iMaxWidth;
+			height = iMaxHeight;
+			bin = 1;
+			Image_type = ASI_IMG_RAW8;
+		}
+
 	}
-
-
-	long lVal;
-	ASI_BOOL bAuto;
-	ASIGetControlValue(CamInfo.CameraID, ASI_TEMPERATURE, &lVal, &bAuto);
-	printf("sensor temperature:%.1f\n", lVal/10.0);
-
-
-
-	while(ASISetROIFormat(CamInfo.CameraID, width, height, bin, (ASI_IMG_TYPE)Image_type))//IMG_RAW8
+	else
 	{
-		printf("Set format error, please check the width and height\n ASI120's data size(width*height) must be integer multiple of 1024\n");
-		printf("Please input the width and height again, ie. 640 480\n");
+		printf("\nPlease input the <width height bin image_type> with one space, ie. 640 480 2 0. use max resolution if input is 0. Press ESC when video window is focused to quit capture\n");
 		scanf("%d %d %d %d", &width, &height, &bin, &Image_type);
-	}
-	printf("\nset image format %d %d %d %d success, start preview, press ESC to stop \n", width, height, bin, Image_type);
+		if(width == 0 || height == 0)
+		{
+			width = iMaxWidth;
+			height = iMaxHeight;
+		}
 
+
+		while(ASISetROIFormat(CamInfo.CameraID, width, height, bin, (ASI_IMG_TYPE)Image_type))//IMG_RAW8
+		{
+			printf("Set format error, please check the width and height\n ASI120's data size(width*height) must be integer multiple of 1024\n");
+			printf("Please input the width and height again, ie. 640 480\n");
+			scanf("%d %d %d %d", &width, &height, &bin, &Image_type);
+		}
+		printf("\nset image format %d %d %d %d success, start preview, press ESC to stop \n", width, height, bin, Image_type);
+	}
 
 	if(Image_type == ASI_IMG_RAW16)
 		pRgb=cvCreateImage(cvSize(width,height), IPL_DEPTH_16U, 1);
@@ -197,10 +297,47 @@ int  main()
 	ASISetControlValue(CamInfo.CameraID,ASI_WB_B, 90, ASI_FALSE);
 	ASISetControlValue(CamInfo.CameraID,ASI_WB_R, 48, ASI_TRUE);
 
+	ASI_SUPPORTED_MODE cammode;
+	ASI_CAMERA_MODE mode;
+	if(CamInfo.IsTriggerCam)
+	{
+		i = 0;
+		printf("This is multi mode camera, you need to select the camera mode:\n");
+		ASIGetCameraSupportMode(CamInfo.CameraID, &cammode);
+		while(cammode.SupportedCameraMode[i]!= ASI_MODE_END)
+		{
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_NORMAL)
+				printf("%d:Normal Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_SOFT_EDGE)
+				printf("%d:Trigger Soft Edge Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_RISE_EDGE)
+				printf("%d:Trigger Rise Edge Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_FALL_EDGE)
+				printf("%d:Trigger Fall Edge Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_SOFT_LEVEL)
+				printf("%d:Trigger Soft Level Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_HIGH_LEVEL)
+				printf("%d:Trigger High Level Mode\n", i);
+			if(cammode.SupportedCameraMode[i]==ASI_MODE_TRIG_LOW_LEVEL)
+				printf("%d:Trigger Low  Lovel Mode\n", i);
+
+			i++;
+		}
+
+		scanf("%d", &modeIndex);
+		ASISetCameraMode(CamInfo.CameraID, cammode.SupportedCameraMode[modeIndex]);
+		ASIGetCameraMode(CamInfo.CameraID, &mode);
+		if(mode != cammode.SupportedCameraMode[modeIndex])
+			printf("Set mode failed!\n");
+
+	}
+
 	ASIStartVideoCapture(CamInfo.CameraID); //start preview
 
-
-
+	long lVal;
+	ASI_BOOL bAuto;
+	ASIGetControlValue(CamInfo.CameraID, ASI_TEMPERATURE, &lVal, &bAuto);
+	printf("sensor temperature:%.1f\n", lVal/10.0);
 
 	bDisplay = 1;
 #ifdef _LIN
@@ -220,9 +357,16 @@ int  main()
 	while(bMain)
 	{
 
-
-		if(ASIGetVideoData(CamInfo.CameraID, (unsigned char*)pRgb->imageData, pRgb->imageSize, exp_ms<=100?200:exp_ms*2) == ASI_SUCCESS)
-					count++;
+		if(mode == ASI_MODE_NORMAL)
+		{
+			if(ASIGetVideoData(CamInfo.CameraID, (unsigned char*)pRgb->imageData, pRgb->imageSize, exp_ms<=100?200:exp_ms*2) == ASI_SUCCESS)
+				count++;
+		}
+		else
+		{
+			if(ASIGetVideoData(CamInfo.CameraID, (unsigned char*)pRgb->imageData, pRgb->imageSize, 1000) == ASI_SUCCESS)
+				count++;
+		}
 
 
 		time2 = GetTickCount();
@@ -249,6 +393,12 @@ int  main()
 			cvResetImageROI(pRgb);
 		}
 		cvText(pRgb, buf, iTextX,iTextY );
+
+		if(bSendTiggerSignal)
+		{
+			ASISendSoftTrigger(CamInfo.CameraID, ASI_TRUE);
+			bSendTiggerSignal = 0;
+		}
 
 		if(bChangeFormat)
 		{

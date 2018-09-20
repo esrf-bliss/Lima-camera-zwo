@@ -87,7 +87,6 @@ test_gui2_video:main_SDK2_video.cpp
 	$(CC)  main_SDK2_video.cpp -o test_gui2_video $(CFLAGS) $(OPENCV) -lASICamera2
 	cp test_gui2_video bin/$(platform)/
 
-
 clean:
 	rm -f test_gui2_snap test_gui2_video
 #pkg-config libusb-1.0 --cflags --libs

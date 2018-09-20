@@ -14,6 +14,8 @@ here is the suggested procedure to operate the camera.
 
 --> ASISetROIFormat
 
+--> ASISetCameraMode
+
 --> ASIStartVideoCapture
 
 //this is recommended to do in another thread
@@ -72,6 +74,17 @@ typedef enum ASI_FLIP_STATUS {
 
 }ASI_FLIP_STATUS;
 
+typedef enum ASI_CAMERA_MODE {
+	ASI_MODE_NORMAL = 0,
+	ASI_MODE_TRIG_SOFT_EDGE,
+	ASI_MODE_TRIG_RISE_EDGE,
+	ASI_MODE_TRIG_FALL_EDGE,
+	ASI_MODE_TRIG_SOFT_LEVEL,
+	ASI_MODE_TRIG_HIGH_LEVEL,
+	ASI_MODE_TRIG_LOW_LEVEL,
+	ASI_MODE_END = -1
+}ASI_CAMERA_MODE;
+
 typedef enum ASI_ERROR_CODE{ //ASI ERROR CODE
 	ASI_SUCCESS=0,
 	ASI_ERROR_INVALID_INDEX, //no camera connected or index value out of boundary
@@ -90,6 +103,7 @@ typedef enum ASI_ERROR_CODE{ //ASI ERROR CODE
 	ASI_ERROR_VIDEO_MODE_ACTIVE,
 	ASI_ERROR_EXPOSURE_IN_PROGRESS,
 	ASI_ERROR_GENERAL_ERROR,//general error, eg: value is out of valid range
+	ASI_ERROR_INVALID_MODE,//the current mode is wrong
 	ASI_ERROR_END
 }ASI_ERROR_CODE;
 
@@ -101,7 +115,7 @@ typedef enum ASI_BOOL{
 typedef struct _ASI_CAMERA_INFO
 {
 	char Name[64]; //the name of the camera, you can display this to the UI
-	int CameraID; //this is used to control everything of the camera in other functions
+	int CameraID; //this is used to control everything of the camera in other functions.Start from 0.
 	long MaxHeight; //the max height of the camera
 	long MaxWidth;	//the max width of the camera
 
@@ -118,11 +132,14 @@ typedef struct _ASI_CAMERA_INFO
 	ASI_BOOL IsUSB3Host;
 	ASI_BOOL IsUSB3Camera;
 	float ElecPerADU;
+	int BitDepth;
+	ASI_BOOL IsTriggerCam;
 
-	char Unused[24];
+	char Unused[16];
 } ASI_CAMERA_INFO;
 
 #define ASI_BRIGHTNESS ASI_OFFSET
+#define ASI_AUTO_MAX_BRIGHTNESS ASI_AUTO_TARGET_BRIGHTNESS
 
 typedef enum ASI_CONTROL_TYPE{ //Control type//
 	ASI_GAIN = 0,
@@ -137,7 +154,7 @@ typedef enum ASI_CONTROL_TYPE{ //Control type//
 	ASI_FLIP,
 	ASI_AUTO_MAX_GAIN,
 	ASI_AUTO_MAX_EXP,//micro second
-	ASI_AUTO_MAX_BRIGHTNESS,
+	ASI_AUTO_TARGET_BRIGHTNESS,//target brightness
 	ASI_HARDWARE_BIN,
 	ASI_HIGH_SPEED_MODE,
 	ASI_COOLER_POWER_PERC,
@@ -166,7 +183,7 @@ typedef struct _ASI_CONTROL_CAPS
 typedef enum ASI_EXPOSURE_STATUS {
 	ASI_EXP_IDLE = 0,//: idle states, you can start exposure now
 	ASI_EXP_WORKING,//: exposing
-	ASI_EXP_SUCCESS,// exposure finished and waiting for download
+	ASI_EXP_SUCCESS,//: exposure finished and waiting for download
 	ASI_EXP_FAILED,//:exposure failed, you need to start exposure again
 
 }ASI_EXPOSURE_STATUS;
@@ -174,6 +191,10 @@ typedef enum ASI_EXPOSURE_STATUS {
 typedef struct _ASI_ID{
 	unsigned char id[8];
 }ASI_ID;
+
+typedef struct _ASI_SUPPORTED_MODE{
+	ASI_CAMERA_MODE SupportedCameraMode[16];// this array will content with the support camera mode type.ASI_MODE_END is the end of supported camera mode
+}ASI_SUPPORTED_MODE;
 
 #ifndef __cplusplus
 #define ASI_CONTROL_TYPE int
@@ -733,7 +754,66 @@ ASI_ERROR_INVALID_ID  :no camera of this ID is connected or ID value is out of b
 ***************************************************************************/
 ASICAMERA_API ASI_ERROR_CODE ASIGetGainOffset(int iCameraID, int *pOffset_HighestDR, int *pOffset_UnityGain, int *pGain_LowestRN, int *pOffset_LowestRN);
 
+/***************************************************************************
+Descriptions£º
+get version string, like "1, 13, 0503"
+***************************************************************************/
+ASICAMERA_API char* ASIGetSDKVersion();
 
+/***************************************************************************
+Description:
+Get the camera supported mode, only need to call when the IsTriggerCam in the CameraInfo is true.
+Paras:
+int CameraID: this is get from the camera property use the API ASIGetCameraProperty
+ASI_SUPPORTED_MODE: the camera supported mode
+
+return:
+ASI_SUCCESS : Operation is successful
+ASI_ERROR_CAMERA_CLOSED : camera didn't open
+ASI_ERROR_INVALID_ID  :no camera of this ID is connected or ID value is out of boundary
+***************************************************************************/
+ASICAMERA_API ASI_ERROR_CODE  ASIGetCameraSupportMode(int iCameraID, ASI_SUPPORTED_MODE* pSupportedMode);
+
+/***************************************************************************
+Description:
+Get the camera current mode, only need to call when the IsTriggerCam in the CameraInfo is true
+Paras:
+int CameraID: this is get from the camera property use the API ASIGetCameraProperty
+ASI_CAMERA_MODE: the current camera mode
+
+return:
+ASI_SUCCESS : Operation is successful
+ASI_ERROR_CAMERA_CLOSED : camera didn't open
+ASI_ERROR_INVALID_ID  :no camera of this ID is connected or ID value is out of boundary
+***************************************************************************/
+ASICAMERA_API ASI_ERROR_CODE  ASIGetCameraMode(int iCameraID, ASI_CAMERA_MODE* mode);
+
+/***************************************************************************
+Description:
+Set the camera mode, only need to call when the IsTriggerCam in the CameraInfo is true
+Paras:
+int CameraID: this is get from the camera property use the API ASIGetCameraProperty
+ASI_CAMERA_MODE: this is get from the camera property use the API ASIGetCameraProperty
+
+return:
+ASI_SUCCESS : Operation is successful
+ASI_ERROR_CAMERA_CLOSED : camera didn't open
+ASI_ERROR_INVALID_SEQUENCE : camera is in capture now, need to stop capture first.
+ASI_ERROR_INVALID_MODE  : mode is out of boundary or this camera do not support this mode
+***************************************************************************/
+ASICAMERA_API ASI_ERROR_CODE  ASISetCameraMode(int iCameraID, ASI_CAMERA_MODE mode);
+
+/***************************************************************************
+Description:
+Send out a softTrigger. For edge trigger, it only need to set true which means send a
+rising trigger to start exposure. For level trigger, it need to set true first means
+start exposure, and set false means stop exposure.it only need to call when the
+IsTriggerCam in the CameraInfo is true
+Paras:
+int CameraID: this is get from the camera property use the API ASIGetCameraProperty
+ASI_BOOL starts:send a softTrigger start/stop signal
+***************************************************************************/
+ASICAMERA_API ASI_ERROR_CODE  ASISendSoftTrigger(int iCameraID, ASI_BOOL bStart);
 #ifdef __cplusplus
 }
 #endif
