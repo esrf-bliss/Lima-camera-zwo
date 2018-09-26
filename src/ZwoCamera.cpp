@@ -160,6 +160,7 @@ lima::Zwo::Camera::Camera(int id)
 				int width,
 				    height;
 				err = ASIGetROIFormat(id, &width, &height, &m_bin, &m_imageType);
+				setImageType(Bpp16);
 			}
 		}
 	}
@@ -394,6 +395,7 @@ void lima::Zwo::Camera::setImageType(const ImageType type)
 			err = ASISetROIFormat(id(), width, height, bin, imgType);
 			if (err != ASI_SUCCESS)
 				DEB_ERROR() << "Could not set image type : " << errorText(err);
+			m_imageType = imgType;
 			return;
 		}
 	DEB_ERROR() << "Requested image type is not useable : " << DEB_VAR1(type);
