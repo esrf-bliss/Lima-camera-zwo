@@ -95,6 +95,9 @@ public:
 	void setCooler(const bool flag);
 
 	bool getCooler();
+	
+private:
+	Camera(const Zwo::Camera&);
 };
 
 };
