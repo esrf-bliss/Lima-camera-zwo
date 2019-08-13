@@ -379,9 +379,9 @@ void lima::Zwo::Camera::setImageType(const ImageType type)
 
 	if (type == Bpp8)
 		imgType = m_asiCameraInfo.IsColorCam ? ASI_IMG_Y8 : ASI_IMG_RAW8;
-	else if	(type != Bpp16)
+	else if	(type == Bpp16)
 		imgType = ASI_IMG_RAW16;
-	else if (type != Bpp24)
+	else if (type == Bpp24)
 		imgType = ASI_IMG_RGB24;
 	else
 	{
