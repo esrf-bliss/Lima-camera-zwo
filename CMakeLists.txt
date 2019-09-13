@@ -1,7 +1,12 @@
 ###########################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-#  Copyright (C) : 2016-2018 Jens Krüger
+#  Copyright (C) : 2009-2019
+#  European Synchrotron Radiation Facility
+#  CS40220 38043 Grenoble Cedex 9
+#  FRANCE
+#
+#  Contact: lima@esrf.fr
 #
 #  This is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -16,42 +21,159 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
-set(NAME "zwo")
 
-if(UNIX)
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--add-needed")
+cmake_minimum_required(VERSION 3.1)
+
+project(zwo)
+
+# Include additional modules that are used inconditionnaly
+include(GNUInstallDirs)
+include(GenerateExportHeader)
+
+# If conda build, always set lib dir to 'lib'
+if($ENV{CONDA_BUILD})
+  set(CMAKE_INSTALL_LIBDIR "lib")
 endif()
 
+# Set lower / upper case project names
+string(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UPPER)
+string(TOLOWER "${PROJECT_NAME}" PROJECT_NAME_LOWER)
 
-set(${NAME}_srcs src/ZwoBinCtrlObj.cpp src/ZwoDetInfoCtrObj.cpp  src/ZwoRoiCtrlObj.cpp
-	src/ZwoSyncCtrlObj.cpp src/ZwoBufferCtrlObj.cpp  src/ZwoFlipCtrlObj.cpp
-	src/ZwoSavingCtrlObj.cpp   src/ZwoVideoCtrlObj.cpp src/ZwoCamera.cpp
-	src/ZwoInterface.cpp  src/ZwoShutterCtrlObj.cpp)
+# Set targets export name (used by lima and dependencies)
+set(TARGETS_EXPORT_NAME "${PROJECT_NAME_LOWER}-targets")
+#set(namespace "${PROJECT_NAME}::")
 
-add_library(lima${NAME} SHARED ${${NAME}_srcs})
+# Check if project is being used directly or via add_subdirectory
+set(CAMERA_MASTER_PROJECT OFF)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(CAMERA_MASTER_PROJECT ON)
+endif()
 
-#INCLUDES
-target_include_directories(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
-target_include_directories(lima${NAME} PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/sdk/include")
+if (CAMERA_MASTER_PROJECT)
+  find_package(Lima REQUIRED COMPONENTS devel tools)
+endif()
+
 
 #LIBRARY
-find_library(LIB_ZWO ASICamera2 "${CMAKE_CURRENT_SOURCE_DIR}/sdk/lib/x64")
+find_library(LIB_ZWO NAMES ASICamera2
+  PATHS "${CMAKE_CURRENT_SOURCE_DIR}/sdk/lib/x64"
+  NO_CMAKE_FIND_ROOT_PATH
+  NO_DEFAULT_PATH
+  )
 if (("${LIB_ZWO}" STREQUAL "LIB_ZWO-NOTFOUND"))
-	message(FATAL_ERROR "${NAME} : libASICamera2 not found")
+  message(FATAL_ERROR "${NAME} : libzwo not found")
 endif()
 
-target_link_libraries(lima${NAME} limacore)
-target_link_libraries(lima${NAME} ${LIB_ZWO})
+# CMake additional macros
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${LIMA_CMAKE_INCLUDE_DIRS} ${CMAKE_MODULE_PATH})
 
-limatools_set_library_soversion(lima${NAME} "VERSION")
+include(LimaTools)
 
-limatools_set_install_libdir(lima${NAME})
+# Set version
+include(project_version)
+
+# Enable python binding code compilation using sip generator
+if (CAMERA_MASTER_PROJECT)
+  option(LIMA_ENABLE_PYTHON "compile python binding code?" OFF)
+  option(LIMA_ENABLE_PYTANGO_SERVER "install python tango server?" OFF)
+
+  if (LIMA_ENABLE_PYTHON)
+    limatools_find_python_and_sip()
+  endif()
+endif()
+
+
+
+file(GLOB_RECURSE ZWO_INCS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
+
+# Library definition
+add_library(zwo SHARED
+  src/ZwoBinCtrlObj.cpp
+  src/ZwoCamera.cpp
+  src/ZwoFlipCtrlObj.cpp
+  src/ZwoRoiCtrlObj.cpp
+  src/ZwoShutterCtrlObj.cpp
+  src/ZwoVideoCtrlObj.cpp
+  src/ZwoBufferCtrlObj.cpp
+  src/ZwoDetInfoCtrObj.cpp
+  src/ZwoInterface.cpp
+  src/ZwoSavingCtrlObj.cpp
+  src/ZwoSyncCtrlObj.cpp
+  ${ZWO_INCS}
+)
+
+# Generate export macros
+generate_export_header(zwo)
+
+# Set version and output name
+set_target_properties(zwo PROPERTIES
+  OUTPUT_NAME "lima${PROJECT_NAME_LOWER}"
+  VERSION "${PROJECT_VERSION}"
+  SOVERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}")
+
+# Add dependencies
+target_include_directories(zwo
+    PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"           # For export header
+    PUBLIC "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
+
+target_include_directories(zwo PUBLIC "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/sdk/include>")
+
+target_link_libraries(zwo PUBLIC limacore ${LIB_ZWO})
+
+
+# Binding code for python
+if(LIMA_ENABLE_PYTHON)
+  limatools_run_sip_for_camera(zwo)
+endif()
+
+# Generate and install package config file and version
+if(CAMERA_MASTER_PROJECT)
+    set (PROJECT_LIBRARIES zwo)
+    set(SIP_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/sip/lima)
+    set(CMAKE_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/cmake/lima)
+    include(package_config)
+endif()
+
+## Installation
+
+install(
+  TARGETS zwo
+  EXPORT "${TARGETS_EXPORT_NAME}"
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}   # import library
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}   # .so files are libraries
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}   # .dll files are binaries
+  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}  # this does not actually install anything (but used by downstream projects)
+)
+
+install(
+  DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+  COMPONENT devel
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  FILES_MATCHING PATTERN "*.h"
+)
+
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/project_version.h
+    ${PROJECT_BINARY_DIR}/zwo_export.h
+  COMPONENT devel
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 if(LIMA_ENABLE_PYTHON)
-  limatools_run_sip_for_camera(${NAME})
-  install(FILES python/__init__.py DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Zwo")
+  install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/python/
+    DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/Lima/Zwo"
+    )
+  if (LIMA_ENABLE_PYTANGO_SERVER)
+    add_subdirectory(tango)
+  endif()
 endif()
 
-if(LIMA_ENABLE_TESTS)
-  add_subdirectory(test)
+## Tests
+if(CAMERA_ENABLE_TESTS)
+    enable_testing()
+    #add_subdirectory(test)
 endif()

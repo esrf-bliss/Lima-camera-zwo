@@ -2,3 +2,5 @@
 *.swp
 *target*
 /test/
+build/
+tango/build/

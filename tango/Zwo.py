@@ -126,13 +126,13 @@ class ZwoClass(PyTango.DeviceClass):
 
 def get_control(camera=0, **keys):
     """Get the camera control object."""
-    print '\n\nStarting and configuring the Zwo camera ...'
+    print ('\n\nStarting and configuring the Zwo camera ...')
     camera = int(camera)
     cam = ZwoHw.Camera(camera)
     control = Core.CtControl(ZwoHw.Interface(cam))
-    print '\n\nZwo Camera #%d (%s:%s) is started' % (
+    print ('\n\nZwo Camera #%d (%s:%s) is started' % (
         camera, '',  # cam.getDetectorType(),
-        cam.getDetectorModel())
+        cam.getDetectorModel()))
     return control
 
 
