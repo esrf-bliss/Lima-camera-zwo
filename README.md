@@ -4,9 +4,9 @@
 [![Version](https://img.shields.io/conda/vn/esrf-bcu/lima-camera-zwo.svg?style=flat)](https://anaconda.org/esrf-bcu)
 [![Platform](https://img.shields.io/conda/pn/esrf-bcu/lima-camera-zwo.svg?style=flat)](https://anaconda.org/esrf-bcu)
 
-# LImA Andor SDK3 Camera Plugin
+# LImA ZWO Camera Plugin
 
-This is the LImA plugin for ZWO cameras.
+This is the LImA plugin for the ZWO cameras.
 
 ## Install
 
@@ -16,7 +16,7 @@ conda install -c esrf-bcu lima-camera-zwo
 
 ### Camera tango device server
 
-conda install -c tango-controls -c esrf-bcu lima-camera-zwo-tango
+conda install -c esrf-bcu lima-camera-zwo-tango
 
 # LImA
 
@@ -26,6 +26,5 @@ Lima is a C++ library which can be used with many different cameras. The library
 
 ## Documentation
 
-The documentation is available [here](https://lima.blissgarden.org)
-
+The documentation is available [here](https://lima1.readthedocs.io/)
 
