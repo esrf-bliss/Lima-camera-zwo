@@ -20,6 +20,7 @@
 #include <lima/Constants.h>
 
 #include "ZwoShutterCtrlObj.h"
+#include "ZwoCamera.h"
 
 lima::Zwo::ShutterCtrlObj::ShutterCtrlObj(Camera &cam)
 	: lima::HwShutterCtrlObj()

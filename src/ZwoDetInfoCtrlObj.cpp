@@ -18,7 +18,7 @@
 //###########################################################################
 //
 
-#include "ZwoDetInfoCtrObj.h"
+#include "ZwoDetInfoCtrlObj.h"
 #include "ZwoCamera.h"
 
 

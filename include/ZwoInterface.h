@@ -25,7 +25,7 @@
 #include "ZwoCamera.h"
 #include "ZwoBinCtrlObj.h"
 #include "ZwoBufferCtrlObj.h"
-#include "ZwoDetInfoCtrObj.h"
+#include "ZwoDetInfoCtrlObj.h"
 #include "ZwoFlipCtrlObj.h"
 #include "ZwoRoiCtrlObj.h"
 #include "ZwoSavingCtrlObj.h"

@@ -23,7 +23,6 @@
 
 #include "lima/HwDetInfoCtrlObj.h"
 #include "lima/Debug.h"
-#include "ASICamera2.h"
 
 namespace lima {
 	namespace Zwo {
@@ -62,7 +61,7 @@ public:
 	virtual void unregisterMaxImageSizeCallback(HwMaxImageSizeCallback &cb);
 
 private:
-	Camera		&m_camera;
+	Camera	&m_camera;
 };
 
 #endif

@@ -23,12 +23,11 @@
 
 #include "lima/HwRoiCtrlObj.h"
 #include "lima/Debug.h"
-#include "ASICamera2.h"
-#include "ZwoCamera.h"
 
 namespace lima {
 	namespace Zwo {
 		class RoiCtrlObj;
+		class Camera;
 	}
 }
 
@@ -48,7 +47,7 @@ public:
 	void getRoi(Roi &hw_roi);
 
 private:
-	Camera		&m_camera;
+	Camera	&m_camera;
 };
 
 #endif

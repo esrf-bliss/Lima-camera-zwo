@@ -19,6 +19,7 @@
 //
 
 #include "ZwoSyncCtrlObj.h"
+#include "ZwoCamera.h"
 
 
 lima::Zwo::SyncCtrlObj::SyncCtrlObj(Camera &cam)

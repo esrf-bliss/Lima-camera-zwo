@@ -19,6 +19,7 @@
 //
 
 #include "ZwoBufferCtrlObj.h"
+#include "ZwoCamera.h"
 
 lima::Zwo::BufferCtrlObj::BufferCtrlObj(Camera &)
 	: lima::HwBufferCtrlObj()
@@ -61,10 +62,12 @@ void lima::Zwo::BufferCtrlObj::getMaxNbBuffers(int &max_nb_buffers)
 
 void *lima::Zwo::BufferCtrlObj::getBufferPtr(int buffer_nb, int concat_frame_nb)
 {
+	return NULL;
 }
 
 void *lima::Zwo::BufferCtrlObj::getFramePtr(int acq_frame_nb)
 {
+	return NULL;
 }
 
 void lima::Zwo::BufferCtrlObj::getStartTimestamp(Timestamp &start_ts)

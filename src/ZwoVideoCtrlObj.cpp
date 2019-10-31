@@ -19,6 +19,7 @@
 //
 
 #include "ZwoVideoCtrlObj.h"
+#include "ZwoCamera.h"
 
 lima::Zwo::VideoCtrlObj::VideoCtrlObj(Camera &cam)
 	: lima::HwVideoCtrlObj()

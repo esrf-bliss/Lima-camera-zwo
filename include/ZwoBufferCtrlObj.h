@@ -33,7 +33,7 @@ namespace lima {
 
 class lima::Zwo::BufferCtrlObj : public lima::HwBufferCtrlObj
 {
-	DEB_CLASS_NAMESPC(DebModCamera, "BinCtrlObj", "Zwo");
+	DEB_CLASS_NAMESPC(DebModCamera, "BufferCtrlObj", "Zwo");
 
 public:
 	BufferCtrlObj(Camera &);

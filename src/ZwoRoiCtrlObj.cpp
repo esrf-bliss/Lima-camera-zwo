@@ -19,8 +19,7 @@
 //
 
 #include "ZwoRoiCtrlObj.h"
-
-#include "ASICamera2.h"
+#include "ZwoCamera.h"
 
 lima::Zwo::RoiCtrlObj::RoiCtrlObj(Camera &cam)
 	: lima::HwRoiCtrlObj()

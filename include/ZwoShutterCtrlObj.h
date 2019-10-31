@@ -24,8 +24,6 @@
 #include "lima/HwShutterCtrlObj.h"
 #include "lima/Debug.h"
 
-#include "ZwoCamera.h"
-
 namespace lima {
 	namespace Zwo {
 		class ShutterCtrlObj;

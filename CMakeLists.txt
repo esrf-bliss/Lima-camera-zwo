@@ -55,8 +55,16 @@ endif()
 
 
 #LIBRARY
+EXECUTE_PROCESS(COMMAND uname -m COMMAND tr -d '\n' OUTPUT_VARIABLE LIB_ARCH)
+if (("${LIB_ARCH}" STREQUAL "x86_64"))
+  set(ZWO_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/sdk/lib/x64")
+elseif(("${LIB_ARCH}" STREQUAL "armv7l"))
+  set(ZWO_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/sdk/lib/armv7")
+else()
+  set(ZWO_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/sdk/lib/x86")
+endif()
 find_library(LIB_ZWO NAMES ASICamera2
-  PATHS "${CMAKE_CURRENT_SOURCE_DIR}/sdk/lib/x64"
+  PATHS "${ZWO_LIB_PATH}"
   NO_CMAKE_FIND_ROOT_PATH
   NO_DEFAULT_PATH
   )
@@ -89,16 +97,16 @@ file(GLOB_RECURSE ZWO_INCS "${CMAKE_CURRENT_SOURCE_DIR}/include/*.h")
 # Library definition
 add_library(zwo SHARED
   src/ZwoBinCtrlObj.cpp
-  src/ZwoCamera.cpp
-  src/ZwoFlipCtrlObj.cpp
-  src/ZwoRoiCtrlObj.cpp
-  src/ZwoShutterCtrlObj.cpp
-  src/ZwoVideoCtrlObj.cpp
   src/ZwoBufferCtrlObj.cpp
-  src/ZwoDetInfoCtrObj.cpp
+  src/ZwoCamera.cpp
+  src/ZwoDetInfoCtrlObj.cpp
+  src/ZwoFlipCtrlObj.cpp
   src/ZwoInterface.cpp
+  src/ZwoRoiCtrlObj.cpp
   src/ZwoSavingCtrlObj.cpp
+  src/ZwoShutterCtrlObj.cpp
   src/ZwoSyncCtrlObj.cpp
+  src/ZwoVideoCtrlObj.cpp
   ${ZWO_INCS}
 )
 
