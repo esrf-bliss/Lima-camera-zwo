@@ -83,7 +83,9 @@ choices.
 Camera initialisation
 .....................
 
-TODO
+There is nothing specific.
+The available cameras must be enumerated. A selected camera can then be inited.
+(Note that at the moment only one camera will be handled by the plugin.)
 
 Std capabilites
 ...............
