@@ -70,6 +70,13 @@ CC = arm-linux-gnueabihf-g++
 AR= arm-linux-gnueabihf-ar
 CFLAGS += -march=armv7 -mcpu=cortex-m3 -mthumb
 endif
+
+ifeq ($(platform), armv8)
+DEFS += -D_LIN -D_ARM
+CC = aarch64-linux-gnu-g++
+AR= aarch64-linux-gnu-ar
+endif
+
 #ifeq ($(platform), armhf)
 #CC = arm-linux-gnueabihf-g++
 #AR= arm-linux-gnueabihf-ar
@@ -78,7 +85,7 @@ endif
 #endif
 
 
-all: test_gui2_snap test_gui2_video
+all: test_gui2_snap test_gui2_video main_SDK2_video_mac
 test_gui2_snap:main_SDK2_snap.cpp
 	$(CC)  main_SDK2_snap.cpp -o test_gui2_snap $(CFLAGS) $(OPENCV) -lASICamera2
 	cp test_gui2_snap bin/$(platform)/
@@ -87,8 +94,12 @@ test_gui2_video:main_SDK2_video.cpp
 	$(CC)  main_SDK2_video.cpp -o test_gui2_video $(CFLAGS) $(OPENCV) -lASICamera2
 	cp test_gui2_video bin/$(platform)/
 
+main_SDK2_video_mac:main_SDK2_video_mac.cpp
+	$(CC)  main_SDK2_video_mac.cpp -o main_SDK2_video_mac $(CFLAGS) -lASICamera2
+	cp main_SDK2_video_mac bin/$(platform)/
+
 clean:
-	rm -f test_gui2_snap test_gui2_video
+	rm -f test_gui2_snap test_gui2_video main_SDK2_video_mac
 #pkg-config libusb-1.0 --cflags --libs
 #pkg-config opencv --cflags --libs
 

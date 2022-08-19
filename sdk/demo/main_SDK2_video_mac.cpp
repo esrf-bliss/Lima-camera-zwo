@@ -1,5 +1,4 @@
 #include "stdio.h"
-#include "opencv2/highgui/highgui_c.h"
 #include "pthread.h"
 #include "ASICamera2.h"
 #include <sys/time.h>
@@ -152,7 +151,7 @@ void* Display(void* params)
 			change = change_size_bigger;
 			break;
 
-			case 't'://triiger
+			case 't'://trigger
 			bSendTiggerSignal = true;
 			break;
 		}

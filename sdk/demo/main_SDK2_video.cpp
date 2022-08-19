@@ -359,7 +359,7 @@ int  main()
 
 		if(mode == ASI_MODE_NORMAL)
 		{
-			if(ASIGetVideoData(CamInfo.CameraID, (unsigned char*)pRgb->imageData, pRgb->imageSize, exp_ms<=100?200:exp_ms*2) == ASI_SUCCESS)
+			if(ASIGetVideoData(CamInfo.CameraID, (unsigned char*)pRgb->imageData, pRgb->imageSize, 500) == ASI_SUCCESS)
 				count++;
 		}
 		else

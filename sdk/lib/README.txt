@@ -11,3 +11,5 @@ or
 $ sudo install asi.rules /etc/udev/rules.d
 and reconnect camera, then the camera can be opened without root
 and run 'cat /sys/module/usbcore/parameters/usbfs_memory_mb' to make sure the result is 200
+
+The version of libusb compiled with is 1.0.19
