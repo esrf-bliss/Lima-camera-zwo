@@ -13,7 +13,13 @@ ZWO offers a large choice of cameras for astronomical applications. The cameras
 are connected via USB. The delivered driver library is available for Linux,
 Mac, and Windows.
 
-The LImA module has been tested with the ASI 178MM-Cool model on Linux.
+The LIMA module has been tested with the following models on Linux::
+
+  - ASI 120MM Mini
+  - ASI 178MM-Cool
+  - ASI 294MM Pro
+  - ASI 2600MM Pro
+
 
 Prerequisite
 ````````````
