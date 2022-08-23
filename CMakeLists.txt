@@ -155,6 +155,12 @@ install(
   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}  # this does not actually install anything (but used by downstream projects)
 )
 
+IF("${CMAKE_SYSTEM}" MATCHES "Linux")
+  install(
+    FILES sdk/lib/asi.rules DESTINATION /etc/udev/rules.d/ COMPONENT config
+  )
+endif()
+
 install(
   DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
   COMPONENT devel
