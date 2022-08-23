@@ -155,9 +155,19 @@ install(
   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}  # this does not actually install anything (but used by downstream projects)
 )
 
-IF("${CMAKE_SYSTEM}" MATCHES "Linux")
+if (NOT WIN32)
   install(
-    FILES sdk/lib/asi.rules DESTINATION /etc/udev/rules.d/ COMPONENT config
+    FILES ${ZWO_LIB_PATH}/libASICamera2.a
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+  install(
+    FILES ${ZWO_LIB_PATH}/libASICamera2.so.1.26 ${ZWO_LIB_PATH}/libASICamera2.so
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+  install(
+    FILES sdk/lib/asi.rules
+    DESTINATION /etc/udev/rules.d/
+    COMPONENT config
   )
 endif()
 
