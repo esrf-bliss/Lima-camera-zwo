@@ -130,7 +130,7 @@ lima::Zwo::Camera::Camera(int id)
 		err = ASIGetCameraProperty(&m_asiCameraInfo, id);
 		if (err == ASI_SUCCESS)
 		{
-			m_cooler = std::string(m_asiCameraInfo.Name).find("-Cool") != std::string::npos;
+			m_cooler = m_asiCameraInfo.IsCoolerCam || std::string(m_asiCameraInfo.Name).find("-Cool") != std::string::npos;
 			err = ASIInitCamera(id);
 			if (err == ASI_SUCCESS)
 			{
