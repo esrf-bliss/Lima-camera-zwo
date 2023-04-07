@@ -709,6 +709,7 @@ ASI_CONTROL_CAPS lima::Zwo::Camera::getControlCap(const ASI_CONTROL_TYPE &t)
 		if (it->ControlType == t)
 			return *it;
 	DEB_ERROR() << "Control type : " << t << "not found";
+	return ASI_CONTROL_CAPS();
 }
 
 void lima::Zwo::Camera::setFlip(const ASI_FLIP_STATUS flip)
