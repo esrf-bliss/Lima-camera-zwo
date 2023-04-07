@@ -85,11 +85,21 @@ class ZwoClass(PyTango.DeviceClass):
     class_property_list = {}
 
     device_property_list = {
-        'camera': [PyTango.DevShort, 'Camera number', [0]],
-        'temperature_sp': [PyTango.DevShort,
-                           'Temperature set point in Celsius', [-30]],
-        'cooler': [PyTango.DevString, 'Start or stop the cooler ("ON"/"OFF")',
-                   ['ON']]
+        'camera': [
+            PyTango.DevShort,
+            'Camera number',
+            [0],
+        ],
+        'temperature_sp': [
+            PyTango.DevShort,
+            'Temperature set point in Celsius',
+            [-30],
+        ],
+        'cooler': [
+            PyTango.DevString,
+            'Start or stop the cooler ("ON"/"OFF")',
+            ['ON'],
+        ]
     }
 
     cmd_list = {}
@@ -101,6 +111,7 @@ class ZwoClass(PyTango.DeviceClass):
                 'description': 'Cooler temperature setpoint in Celsius',
                 'unit': 'C',
                 'format': '%1d',
+                'memorized': 'True',
             }],
         'temperature': [
             [PyTango.DevShort, PyTango.SCALAR, PyTango.READ],
@@ -115,6 +126,7 @@ class ZwoClass(PyTango.DeviceClass):
                 'description': 'Start/stop the cooler, OFF or ON',
                 'unit': '',
                 'format': '',
+                'memorized': 'True',
             }],
     }
 
@@ -126,11 +138,11 @@ class ZwoClass(PyTango.DeviceClass):
 
 def get_control(camera=0, **keys):
     """Get the camera control object."""
-    print ('\n\nStarting and configuring the Zwo camera ...')
+    print('\n\nStarting and configuring the Zwo camera ...')
     camera = int(camera)
     cam = ZwoHw.Camera(camera)
     control = Core.CtControl(ZwoHw.Interface(cam))
-    print ('\n\nZwo Camera #%d (%s:%s) is started' % (
+    print('\n\nZwo Camera #%d (%s:%s) is started' % (
         camera, '',  # cam.getDetectorType(),
         cam.getDetectorModel()))
     return control
