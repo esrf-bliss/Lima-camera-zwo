@@ -62,6 +62,7 @@ public:
 
 private:
 	Camera	&m_camera;
+	HwMaxImageSizeCallbackGen m_mis_cb_gen;
 };
 
 #endif

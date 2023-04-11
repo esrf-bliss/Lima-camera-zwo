@@ -93,9 +93,11 @@ void lima::Zwo::DetInfoCtrObj::getDetectorModel(std::string &det_model)
 void lima::Zwo::DetInfoCtrObj::registerMaxImageSizeCallback(HwMaxImageSizeCallback &cb)
 {
 	DEB_MEMBER_FUNCT();
+	m_mis_cb_gen.registerMaxImageSizeCallback(cb);
 }
 
 void lima::Zwo::DetInfoCtrObj::unregisterMaxImageSizeCallback(HwMaxImageSizeCallback &cb)
 {
 	DEB_MEMBER_FUNCT();
+	m_mis_cb_gen.unregisterMaxImageSizeCallback(cb);
 }
