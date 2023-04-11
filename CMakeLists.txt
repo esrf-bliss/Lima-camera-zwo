@@ -161,6 +161,22 @@ IF("${CMAKE_SYSTEM}" MATCHES "Linux")
   )
 endif()
 
+if (NOT WIN32)
+  install(
+    FILES ${ZWO_LIB_PATH}/libASICamera2.a
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+  install(
+    FILES ${ZWO_LIB_PATH}/libASICamera2.so.1.26 ${ZWO_LIB_PATH}/libASICamera2.so
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  )
+  install(
+    FILES sdk/lib/asi.rules
+    DESTINATION /etc/udev/rules.d/
+    COMPONENT config
+  )
+endif()
+
 install(
   DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
   COMPONENT devel
