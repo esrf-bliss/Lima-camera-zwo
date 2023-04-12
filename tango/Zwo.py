@@ -2,7 +2,7 @@
 ############################################################################
 # This file is part of LImA, a Library for Image Acquisition
 #
-# Copyright (C) : 2016-2018
+# Copyright (C) : 2016-2023
 # Jens Krüger <jens.krueger@frm2.tum.de>
 #
 # This is free software; you can redistribute it and/or modify
