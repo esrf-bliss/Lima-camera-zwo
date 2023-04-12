@@ -63,7 +63,7 @@ void lima::Zwo::FlipCtrlObj::getFlip(Flip &flip)
 	{
 		default:
 		case ASI_FLIP_NONE:
-			flip = Flip();
+			flip = Flip(false, false);
 			break;
 		case ASI_FLIP_HORIZ:
 			flip = Flip(true, false);
@@ -72,7 +72,7 @@ void lima::Zwo::FlipCtrlObj::getFlip(Flip &flip)
 			flip = Flip(false, true);
 			break;
 		case ASI_FLIP_BOTH:
-			flip = Flip(true);
+			flip = Flip(true, true);
 			break;
 	}
 	DEB_RETURN() << DEB_VAR1(flip);
