@@ -128,12 +128,16 @@ public:
 
 	HwBufferCtrlObj *getBufferCtrlObj();
 
+	bool hasHwBinning(void);
+
 private:
 	class _AcqThread;
 
 	friend class _AcqThread;
 
 	bool hasCooler(void);
+
+	bool isHwBinningEnabled(void);
 
 private:
 	ASI_IMG_TYPE			m_imageType;
