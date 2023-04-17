@@ -152,7 +152,7 @@ lima::Zwo::Camera::Camera(int id)
 					struct timespec t = {0, 70000000}; // 70 ms
 					// this sleep is needed to initialize the temperature sensor in the lib
 					nanosleep(&t, &t);
-					if (ASI_SUCCESS == ASISetROIFormat(id, m_asiCameraInfo.MaxWidth / m_bin, m_asiCameraInfo.MaxHeight / m_bin, m_bin, m_imageType))
+					if (ASI_SUCCESS == ASISetROIFormat(id, getMaxWidth() / m_bin, getMaxHeight() / m_bin, m_bin, m_imageType))
 					{
 						setImageType(Bpp16);
 						if (hasHwBinning())
@@ -444,6 +444,19 @@ bool lima::Zwo::Camera::isHwBinningEnabled(void)
 	return bool(enabled);
 }
 
+int lima::Zwo::Camera::getMaxWidth(void)
+{
+	if (!hasHwBinning())
+		return m_asiCameraInfo.MaxWidth;
+	return calcminpixels(m_asiCameraInfo.MaxWidth);
+}
+
+int lima::Zwo::Camera::getMaxHeight(void)
+{
+	if (!hasHwBinning())
+		return m_asiCameraInfo.MaxHeight;
+	return calcminpixels(m_asiCameraInfo.MaxHeight, 2);
+}
 
 void lima::Zwo::Camera::setBin(const Bin &bin)
 {
@@ -458,8 +471,8 @@ void lima::Zwo::Camera::setBin(const Bin &bin)
 		Bin cBin = getBin();	// get current bin
 		Roi cRoi = getRoi();	// get current roi
 
-		int width = m_asiCameraInfo.MaxWidth / bin.getX(),
-		    height = m_asiCameraInfo.MaxHeight / bin.getY(),
+		int width = getMaxWidth() / bin.getX(),
+		    height = getMaxHeight() / bin.getY(),
 		    x = cRoi.getTopLeft().x * cBin.getX() / bin.getX(),
 		    y = cRoi.getTopLeft().y * cBin.getY() / bin.getY();
 		Roi roi(x, y, width, height);
@@ -608,10 +621,10 @@ int lima::Zwo::Camera::id(void) const
 	return m_asiCameraInfo.CameraID;
 }
 
-lima::Size lima::Zwo::Camera::hwSize(void) const
+lima::Size lima::Zwo::Camera::hwSize(void)
 {
 	DEB_MEMBER_FUNCT();
-	return Size(m_asiCameraInfo.MaxWidth, m_asiCameraInfo.MaxHeight);
+	return Size(getMaxWidth(), getMaxHeight());
 }
 
 std::string lima::Zwo::Camera::errorText(const ASI_ERROR_CODE err)
@@ -849,4 +862,17 @@ bool lima::Zwo::Camera::getCooler(void)
 bool lima::Zwo::Camera::hasCooler(void)
 {
 	return m_cooler;
+}
+
+int lima::Zwo::Camera::calcminpixels(int pixels, int size)
+{
+	std::vector<int> v;
+	std::vector<int> bins = {1, 2, 3, 4};
+	for (std::vector<int>::const_iterator i = bins.begin(); i != bins.end(); ++i)
+		v.push_back(*i * (pixels / (*i * size)));
+	int m = *std::min_element(v.begin(), v.end());
+
+	while (std::any_of(bins.begin(), bins.end(), [m](int val) { return (m % val); }))
+		--m;
+	return m * size;
 }

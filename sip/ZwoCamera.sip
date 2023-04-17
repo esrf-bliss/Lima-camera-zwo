@@ -82,7 +82,7 @@ public:
 
 	int id() const;
 
-	Size hwSize() const;
+	Size hwSize();
 
 	std::list<VideoMode> getSupportedVideoMode();
 
