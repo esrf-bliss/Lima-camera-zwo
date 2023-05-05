@@ -26,6 +26,8 @@ cmake_minimum_required(VERSION 3.10)
 
 project(zwo)
 
+message("-- Generate ZWO camera plugin: " ${PACKAGE_VERSION})
+
 # Include additional modules that are used inconditionnaly
 include(GNUInstallDirs)
 include(GenerateExportHeader)
