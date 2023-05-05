@@ -34,12 +34,10 @@
 
 """Sources for the ZWO cameras."""
 
-from Lima.Server import AttrHelper
-
+import PyTango
 from Lima import Core
 from Lima import Zwo as ZwoHw
-
-import PyTango
+from Lima.Server import AttrHelper
 
 
 class Zwo(PyTango.Device_4Impl):
@@ -50,7 +48,12 @@ class Zwo(PyTango.Device_4Impl):
     def __init__(self, *args):
         """Device constructor."""
         PyTango.Device_4Impl.__init__(self, *args)
-        self.__Attribute2FunctionBase = {'temperature_sp': 'TemperatureSP'}
+        self.__Attribute2FunctionBase = {
+            'adc_gain': 'Gain',
+            'temperature_sp': 'TemperatureSP',
+            'temperature': 'Temperature',
+            'cooler': 'Cooler',
+        }
         self.__Cooler = {'ON': True, 'OFF': False}
         self.init_device()
 
@@ -69,6 +72,8 @@ class Zwo(PyTango.Device_4Impl):
             self.cam.setCooler(self.__Cooler[self.cooler])
         if self.temperature_sp:
             self.cam.setTemperatureSP(self.temperature_sp)
+        if self.adc_gain:
+            self.cam.setGain(self.adc_gain)
 
     def __getattr__(self, name):
         return AttrHelper.get_attr_4u(self, name, self.cam)
@@ -99,7 +104,12 @@ class ZwoClass(PyTango.DeviceClass):
             PyTango.DevString,
             'Start or stop the cooler ("ON"/"OFF")',
             ['ON'],
-        ]
+        ],
+        'adc_gain': [
+            PyTango.DevDouble,
+            'Adc Gain',
+            [200],
+        ],
     }
 
     cmd_list = {}
@@ -110,22 +120,31 @@ class ZwoClass(PyTango.DeviceClass):
             {
                 'description': 'Cooler temperature setpoint in Celsius',
                 'unit': 'C',
-                'format': '%1d',
+                'format': '%.0f',
                 'memorized': 'True',
             }],
         'temperature': [
             [PyTango.DevShort, PyTango.SCALAR, PyTango.READ],
             {
-                'description': 'Cooler temperaturein Celsius',
+                'description': 'Cooler temperature in Celsius',
                 'unit': 'C',
-                'format': '%1d',
+                'format': '%.1f',
             }],
         'cooler': [
             [PyTango.DevString, PyTango.SCALAR, PyTango.READ_WRITE],
             {
                 'description': 'Start/stop the cooler, OFF or ON',
                 'unit': '',
-                'format': '',
+                'format': '%s',
+                'memorized': 'True',
+            }],
+        'adc_gain': [
+            [PyTango.DevDouble, PyTango.SCALAR, PyTango.READ_WRITE],
+            {
+                'description': 'ADC Gain which can be apply to the preamplifier',
+                'label': 'ADC Gain',
+                'unit': '',
+                'format': '%.0f',
                 'memorized': 'True',
             }],
     }
