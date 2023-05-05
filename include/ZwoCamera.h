@@ -130,6 +130,14 @@ public:
 
 	bool hasHwBinning(void);
 
+	void setGain(double);
+
+	double getGain(void);
+
+	void setLive(bool);
+
+	bool getLive(void) const;
+
 private:
 	class _AcqThread;
 
@@ -171,6 +179,8 @@ private:
 	bool				m_acq_thread_run;
 
 	SoftBufferCtrlObj		m_buffer;
+
+	bool				m_live;
 };
 
 #endif

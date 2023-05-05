@@ -34,12 +34,10 @@
 
 """Sources for the ZWO cameras."""
 
-from Lima.Server import AttrHelper
-
+import PyTango
 from Lima import Core
 from Lima import Zwo as ZwoHw
-
-import PyTango
+from Lima.Server import AttrHelper
 
 
 class Zwo(PyTango.Device_4Impl):
@@ -116,9 +114,9 @@ class ZwoClass(PyTango.DeviceClass):
         'temperature': [
             [PyTango.DevShort, PyTango.SCALAR, PyTango.READ],
             {
-                'description': 'Cooler temperaturein Celsius',
+                'description': 'Cooler temperature in Celsius',
                 'unit': 'C',
-                'format': '%1d',
+                'format': '%.1f',
             }],
         'cooler': [
             [PyTango.DevString, PyTango.SCALAR, PyTango.READ_WRITE],

@@ -120,6 +120,7 @@ lima::Zwo::Camera::Camera(int id)
 	, m_acq_frame_id(-1)
 	, m_acq_started(false)
 	, m_acq_thread_run(false)
+	, m_live(false)
 {
 	DEB_CONSTRUCTOR();
 	m_controlCaps.clear();
@@ -144,7 +145,7 @@ lima::Zwo::Camera::Camera(int id)
 					{
 						if (ASIGetControlCaps(id, i, &controlCaps) != ASI_SUCCESS)
 							continue;
-						DEB_WARNING() << controlCaps.ControlType << ": "  << controlCaps.Name << ": " << controlCaps.Description;
+						DEB_ALWAYS() << controlCaps.ControlType << ": "  << controlCaps.Name << ": " << controlCaps.Description;
 						DEB_WARNING() << "        " << controlCaps.MinValue << "-" << controlCaps.MaxValue << ": default = " << controlCaps.DefaultValue;
 						m_controlCaps.push_back(controlCaps);
 					}
@@ -174,10 +175,14 @@ lima::Zwo::Camera::Camera(int id)
 
 bool lima::Zwo::Camera::hasHwBinning(void)
 {
-	ASI_CONTROL_CAPS ccap = getControlCap(ASI_HARDWARE_BIN);
-	// Disable the hardware binning for now. The new setting of the ROI due to change of binning won't work
-	// correctly. The values will not be given back to the framework
-	return false and ccap.ControlType == ASI_HARDWARE_BIN;
+	ASI_CONTROL_CAPS ccap;
+	if (ASIGetControlCaps(id(), ASI_HARDWARE_BIN, &ccap) == ASI_SUCCESS)
+	{
+		// Disable the hardware binning for now. The new setting of the ROI due to change of binning won't work
+		// correctly. The values will not be given back to the framework
+		return false and ccap.ControlType == ASI_HARDWARE_BIN;
+	}
+	return false;
 }
 
 lima::Zwo::Camera::~Camera()
@@ -415,10 +420,13 @@ void lima::Zwo::Camera::enableHwBinning(const bool enable)
 	DEB_PARAM() << DEB_VAR1(enable);
 	if (id() != -1)
 	{
-		ASI_ERROR_CODE err = ASISetControlValue(id(), ASI_HARDWARE_BIN, int(enable), ASI_TRUE);
-		if (err != ASI_SUCCESS)
+		if (hasHwBinning())
 		{
-			DEB_ERROR() << "Could not enable hardware binning: " << errorText(err);
+			ASI_ERROR_CODE err = ASISetControlValue(id(), ASI_HARDWARE_BIN, int(enable), ASI_TRUE);
+			if (err != ASI_SUCCESS)
+			{
+				DEB_ERROR() << "Could not enable hardware binning: " << errorText(err);
+			}
 		}
 	}
 	else
@@ -431,11 +439,14 @@ bool lima::Zwo::Camera::isHwBinningEnabled(void)
 	DEB_MEMBER_FUNCT();
 	if (id() != -1)
 	{
-		ASI_BOOL bAuto = ASI_FALSE;
-		ASI_ERROR_CODE err = ASIGetControlValue(id(), ASI_HARDWARE_BIN, &enabled, &bAuto);
-		if (err != ASI_SUCCESS)
+		if (hasHwBinning())
 		{
-			DEB_ERROR() << "Could not get hardware binning: " << errorText(err);
+			ASI_BOOL bAuto = ASI_FALSE;
+			ASI_ERROR_CODE err = ASIGetControlValue(id(), ASI_HARDWARE_BIN, &enabled, &bAuto);
+			if (err != ASI_SUCCESS)
+			{
+				DEB_ERROR() << "Could not get hardware binning: " << errorText(err);
+			}
 		}
 	}
 	else
@@ -875,4 +886,45 @@ int lima::Zwo::Camera::calcminpixels(int pixels, int size)
 	while (std::any_of(bins.begin(), bins.end(), [m](int val) { return (m % val); }))
 		--m;
 	return m * size;
+}
+
+void lima::Zwo::Camera::setGain(double gain)
+{
+	DEB_MEMBER_FUNCT();
+	ASI_CONTROL_CAPS controlCap = getControlCap(ASI_GAIN);
+	if (ASISetControlValue(id(), ASI_GAIN, int(gain * controlCap.MaxValue), ASI_FALSE) != ASI_SUCCESS)
+	{
+			DEB_ERROR() << "Could not set gain value";
+	}
+}
+
+double lima::Zwo::Camera::getGain(void)
+{
+	DEB_MEMBER_FUNCT();
+	ASI_CONTROL_CAPS controlCap = getControlCap(ASI_GAIN);
+	long ltemp(0);
+	ASI_BOOL bAuto(ASI_FALSE);
+	if (ASIGetControlValue(id(), ASI_COOLER_ON, &ltemp, &bAuto) == ASI_SUCCESS)
+		return double(ltemp) / controlCap.MaxValue;
+	return 0;
+}
+
+void lima::Zwo::Camera::setLive(bool live)
+{
+	DEB_MEMBER_FUNCT();
+	ASI_ERROR_CODE error;
+	if (live)
+		error = ASIStartVideoCapture(id());
+	else
+		error = ASIStopVideoCapture(id());
+	if (error == ASI_SUCCESS)
+		m_live = live;
+	else
+		DEB_ERROR() << "Could not start/stop live mode: " << error;
+}
+
+bool lima::Zwo::Camera::getLive(void) const
+{
+	DEB_MEMBER_FUNCT();
+	return m_live;
 }
