@@ -106,7 +106,7 @@ class ZwoClass(PyTango.DeviceClass):
 
     attr_list = {
         'temperature_sp': [
-            [PyTango.DevShort, PyTango.SCALAR, PyTango.READ_WRITE],
+            [PyTango.DevDouble, PyTango.SCALAR, PyTango.READ_WRITE],
             {
                 'description': 'Cooler temperature setpoint in Celsius',
                 'unit': 'C',
@@ -114,7 +114,7 @@ class ZwoClass(PyTango.DeviceClass):
                 'memorized': 'True',
             }],
         'temperature': [
-            [PyTango.DevShort, PyTango.SCALAR, PyTango.READ],
+            [PyTango.DevDouble, PyTango.SCALAR, PyTango.READ],
             {
                 'description': 'Cooler temperaturein Celsius',
                 'unit': 'C',
