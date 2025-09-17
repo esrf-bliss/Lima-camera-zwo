@@ -82,6 +82,7 @@ include(project_version)
 
 # Enable python binding code compilation using sip generator
 if (CAMERA_MASTER_PROJECT)
+  option(LIMA_INSTALL_ZWO_SDK "install zwo SDK" OFF)
   option(LIMA_ENABLE_PYTHON "compile python binding code?" OFF)
   option(LIMA_ENABLE_PYTANGO_SERVER "install python tango server?" OFF)
 
@@ -155,7 +156,10 @@ install(
   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}  # this does not actually install anything (but used by downstream projects)
 )
 
-IF("${CMAKE_SYSTEM}" MATCHES "Linux")
+# Do not install SDK and USB rules if building with Conda Build
+if (LIMA_INSTALL_ZWO_SDK)
+
+if ("${CMAKE_SYSTEM}" MATCHES "Linux")
   install(
     FILES sdk/lib/asi.rules DESTINATION /etc/udev/rules.d/ COMPONENT config
   )
@@ -176,6 +180,8 @@ if (NOT WIN32)
     COMPONENT config
   )
 endif()
+
+endif(LIMA_INSTALL_ZWO_SDK)
 
 install(
   DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
