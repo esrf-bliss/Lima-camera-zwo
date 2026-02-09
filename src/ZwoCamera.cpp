@@ -112,7 +112,7 @@ void ::lima::Zwo::Camera::_AcqThread::threadFunction()
 }
 
 lima::Zwo::Camera::Camera(int id)
-	: m_imageType(ASI_IMG_END)
+	: m_imageType(ASI_IMG_RAW16)
 	, m_bin(1)
 	, m_cooler(false)
 	, m_quit(false)
@@ -122,46 +122,45 @@ lima::Zwo::Camera::Camera(int id)
 	, m_acq_thread_run(false)
 {
 	DEB_CONSTRUCTOR();
+	m_controlCaps.clear();
 	int nCam = ASIGetNumOfConnectedCameras();
-	m_asiCameraInfo.CameraID = -1;
-	ASI_ERROR_CODE err = ASIOpenCamera(id);
+	ASI_ERROR_CODE err = ASIGetCameraProperty(&m_asiCameraInfo, id);
 	if (err == ASI_SUCCESS)
 	{
-		err = ASIGetCameraProperty(&m_asiCameraInfo, id);
+		m_cooler = m_asiCameraInfo.IsCoolerCam || std::string(m_asiCameraInfo.Name).find("-Cool") != std::string::npos;
+		err = ASIOpenCamera(id);
 		if (err == ASI_SUCCESS)
 		{
-			m_cooler = m_asiCameraInfo.IsCoolerCam || std::string(m_asiCameraInfo.Name).find("-Cool") != std::string::npos;
 			err = ASIInitCamera(id);
 			if (err == ASI_SUCCESS)
 			{
-				m_asiCameraInfo.CameraID = id;
 				int nCtrls = 0;
 				err = ASIGetNumOfControls(id, &nCtrls);
-				m_controlCaps.clear();
 				if (err == ASI_SUCCESS)
 				{
 					ASI_CONTROL_CAPS controlCaps;
 					DEB_WARNING() << "USB3 : " << isUsb3Camera();
-					for (int i = 0; i < nCtrls; i++)
+					for (int i = 0; i < ASI_ANTI_DEW_HEATER + 1 /* nCtrls */;  i++)
 					{
-						ASIGetControlCaps(id, i, &controlCaps);
-						DEB_WARNING() << controlCaps.ControlType << " :"  << controlCaps.Name << " :" << controlCaps.Description;
-						DEB_WARNING() << controlCaps.MinValue << "-" << controlCaps.MaxValue << ":" << controlCaps.DefaultValue;
-						if (controlCaps.ControlType == ASI_HARDWARE_BIN)
-							enableHwBinning(true);
+						if (ASIGetControlCaps(id, i, &controlCaps) != ASI_SUCCESS)
+							continue;
+						DEB_WARNING() << controlCaps.ControlType << ": "  << controlCaps.Name << ": " << controlCaps.Description;
+						DEB_WARNING() << "        " << controlCaps.MinValue << "-" << controlCaps.MaxValue << ": default = " << controlCaps.DefaultValue;
 						m_controlCaps.push_back(controlCaps);
 					}
 					getTemperature();
 					struct timespec t = {0, 70000000}; // 70 ms
 					// this sleep is needed to initialize the temperature sensor in the lib
 					nanosleep(&t, &t);
+					if (ASI_SUCCESS == ASISetROIFormat(id, getMaxWidth() / m_bin, getMaxHeight() / m_bin, m_bin, m_imageType))
+					{
+						setImageType(Bpp16);
+						if (hasHwBinning())
+							enableHwBinning(true);
+					}
 				}
 				else
 					DEB_ERROR() << "err : " << errorText(err);
-				int width,
-				    height;
-				err = ASIGetROIFormat(id, &width, &height, &m_bin, &m_imageType);
-				setImageType(Bpp16);
 			}
 		}
 	}
@@ -172,6 +171,15 @@ lima::Zwo::Camera::Camera(int id)
 	m_acq_thread->start();
 }
 
+
+bool lima::Zwo::Camera::hasHwBinning(void)
+{
+	ASI_CONTROL_CAPS ccap = getControlCap(ASI_HARDWARE_BIN);
+	// Disable the hardware binning for now. The new setting of the ROI due to change of binning won't work
+	// correctly. The values will not be given back to the framework
+	return false and ccap.ControlType == ASI_HARDWARE_BIN;
+}
+
 lima::Zwo::Camera::~Camera()
 {
 	DEB_DESTRUCTOR();
@@ -180,7 +188,6 @@ lima::Zwo::Camera::~Camera()
 		ASI_ERROR_CODE err = ASICloseCamera(id());
 		if (err != ASI_SUCCESS)
 			DEB_ERROR() << "Could not close camera: " << errorText(err);
-		m_asiCameraInfo.CameraID = -1;
 	}
 	m_quit = true;
 }
@@ -227,7 +234,7 @@ lima::HwInterface::StatusType lima::Zwo::Camera::getStatus(void)
 	status.set(lima::HwInterface::StatusType::Ready);
 	if (id() != -1)
 	{
-		ASI_EXPOSURE_STATUS expStatus;
+		ASI_EXPOSURE_STATUS expStatus(ASI_EXP_IDLE);
 		if (ASIGetExpStatus(id(), &expStatus) == ASI_SUCCESS)
 		{
 			switch (expStatus)
@@ -418,6 +425,39 @@ void lima::Zwo::Camera::enableHwBinning(const bool enable)
 		DEB_ERROR() << "No camera available";
 }
 
+bool lima::Zwo::Camera::isHwBinningEnabled(void)
+{
+	long enabled(false);
+	DEB_MEMBER_FUNCT();
+	if (id() != -1)
+	{
+		ASI_BOOL bAuto = ASI_FALSE;
+		ASI_ERROR_CODE err = ASIGetControlValue(id(), ASI_HARDWARE_BIN, &enabled, &bAuto);
+		if (err != ASI_SUCCESS)
+		{
+			DEB_ERROR() << "Could not get hardware binning: " << errorText(err);
+		}
+	}
+	else
+		DEB_ERROR() << "No camera available";
+	DEB_RETURN() << DEB_VAR1(enabled);
+	return bool(enabled);
+}
+
+int lima::Zwo::Camera::getMaxWidth(void)
+{
+	if (!hasHwBinning())
+		return m_asiCameraInfo.MaxWidth;
+	return calcminpixels(m_asiCameraInfo.MaxWidth);
+}
+
+int lima::Zwo::Camera::getMaxHeight(void)
+{
+	if (!hasHwBinning())
+		return m_asiCameraInfo.MaxHeight;
+	return calcminpixels(m_asiCameraInfo.MaxHeight, 2);
+}
+
 void lima::Zwo::Camera::setBin(const Bin &bin)
 {
 	DEB_MEMBER_FUNCT();
@@ -428,9 +468,14 @@ void lima::Zwo::Camera::setBin(const Bin &bin)
 	}
 	else if (id() != -1)
 	{
-		int width = m_asiCameraInfo.MaxWidth / bin.getX(),
-		    height = m_asiCameraInfo.MaxHeight / bin.getY();
-		Roi roi(0, 0, width, height);
+		Bin cBin = getBin();	// get current bin
+		Roi cRoi = getRoi();	// get current roi
+
+		int width = getMaxWidth() / bin.getX(),
+		    height = getMaxHeight() / bin.getY(),
+		    x = cRoi.getTopLeft().x * cBin.getX() / bin.getX(),
+		    y = cRoi.getTopLeft().y * cBin.getY() / bin.getY();
+		Roi roi(x, y, width, height);
 	        checkRoi(roi, roi);
 		width = roi.getSize().getWidth();
 		height = roi.getSize().getHeight();
@@ -486,8 +531,11 @@ void lima::Zwo::Camera::checkRoi(const Roi &set_roi, Roi &hw_roi)
 	{
 		int	x = s.getWidth(),
 			y = s.getHeight();
-		x -= (x % 8);
-		y -= (y % 8);
+		if (isHwBinningEnabled())
+		{
+			x -= (x % 8);
+			y -= (y % 2);
+		}
 		if (x > hwSize().getWidth())
 		{
 			x = hwSize().getWidth();
@@ -519,13 +567,13 @@ void lima::Zwo::Camera::setRoi(const Roi &roi)
 		{
 			Size s = roi.getSize();
 			// 0 values in width and/or height will be interpreted as maximum values of the camera
-			if (!s.getWidth() || !s.getHeight())
+			if (s.isEmpty())
 			{
 				DEB_TRACE() << "Roi size is: " << s;
 				if (!s.getWidth())
-					s = Point(hwSize().getWidth(), s.getHeight());
+					s = Point(hwSize().getWidth() / m_bin, s.getHeight());
 				if (!s.getHeight())
-					s = Point(s.getWidth(), hwSize().getHeight());
+					s = Point(s.getWidth(), hwSize().getHeight() / m_bin);
 				DEB_TRACE() << "Roi size changed to: " << s;
 			}
 			status = ASISetROIFormat(id(), s.getWidth(), s.getHeight(), m_bin, m_imageType);
@@ -573,10 +621,10 @@ int lima::Zwo::Camera::id(void) const
 	return m_asiCameraInfo.CameraID;
 }
 
-lima::Size lima::Zwo::Camera::hwSize(void) const
+lima::Size lima::Zwo::Camera::hwSize(void)
 {
 	DEB_MEMBER_FUNCT();
-	return Size(m_asiCameraInfo.MaxWidth, m_asiCameraInfo.MaxHeight);
+	return Size(getMaxWidth(), getMaxHeight());
 }
 
 std::string lima::Zwo::Camera::errorText(const ASI_ERROR_CODE err)
@@ -814,4 +862,17 @@ bool lima::Zwo::Camera::getCooler(void)
 bool lima::Zwo::Camera::hasCooler(void)
 {
 	return m_cooler;
+}
+
+int lima::Zwo::Camera::calcminpixels(int pixels, int size)
+{
+	std::vector<int> v;
+	std::vector<int> bins = {1, 2, 3, 4};
+	for (std::vector<int>::const_iterator i = bins.begin(); i != bins.end(); ++i)
+		v.push_back(*i * (pixels / (*i * size)));
+	int m = *std::min_element(v.begin(), v.end());
+
+	while (std::any_of(bins.begin(), bins.end(), [m](int val) { return (m % val); }))
+		--m;
+	return m * size;
 }

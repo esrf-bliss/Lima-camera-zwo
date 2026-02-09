@@ -35,7 +35,8 @@ lima::Zwo::Interface::Interface(Camera &cam)
 {
 	DEB_CONSTRUCTOR();
 
-	m_cap_list.push_back(HwCap(&m_bin));
+	if (m_cam.hasHwBinning())
+		m_cap_list.push_back(HwCap(&m_bin));
 	m_cap_list.push_back(HwCap(&m_det_info));
 	m_cap_list.push_back(HwCap(&m_flip));
 	m_cap_list.push_back(HwCap(&m_roi));

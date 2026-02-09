@@ -102,7 +102,7 @@ public:
 
 	int id(void) const;
 
-	Size hwSize(void) const;
+	Size hwSize(void);
 
 	std::list< ::lima::VideoMode> getSupportedVideoMode(void);
 
@@ -128,12 +128,22 @@ public:
 
 	HwBufferCtrlObj *getBufferCtrlObj();
 
+	bool hasHwBinning(void);
+
 private:
 	class _AcqThread;
 
 	friend class _AcqThread;
 
 	bool hasCooler(void);
+
+	bool isHwBinningEnabled(void);
+
+	int calcminpixels(int, int = 8);
+
+	int getMaxHeight(void);
+
+	int getMaxWidth(void);
 
 private:
 	ASI_IMG_TYPE			m_imageType;
