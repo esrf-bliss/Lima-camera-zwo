@@ -3,28 +3,27 @@ stages:
   - build-noarch
   - deploy
 
-.build-conda: &build-conda
+build-linux:
   stage: build
+  script:
+    - conda mambabuild ./conda/camera --prefix-length=80 --output-folder=dist/ --channel=http://bcu-ci.esrf.fr/stable
   artifacts:
     paths:
       - dist/
   tags:
-    - conda
-
-build-linux:
-  <<: *build-conda
-  script:
-    - conda mambabuild ./conda/camera --prefix-length=80 --output-folder=dist/ --channel=http://bcu-ci.esrf.fr/stable
-  tags:
     - linux
 
 build-noarch:
-  <<: *build-conda
   stage: build-noarch
   script:
     - conda mambabuild ./conda/tango --prefix-length=80 --output-folder=dist/ --channel=http://bcu-ci.esrf.fr/stable
   dependencies:
     - build-linux
+  artifacts:
+    paths:
+      - dist/
+  tags:
+    - linux
 
 deploy-devel:
   stage: deploy
