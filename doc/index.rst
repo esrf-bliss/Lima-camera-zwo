@@ -27,58 +27,14 @@ Prerequisite
 Installation & Module configuration
 ```````````````````````````````````
 
--  follow first the steps for the linux installation :ref:`linux_installation`
--  follow first the steps for the windows installation :ref:`windows_installation`
-
-The minimum configuration file is *config.inc* :
+Follow the generic instructions in :ref:`build_installation`. If using CMake
+directly, add the following flag:
 
 .. code-block:: sh
 
- COMPILE_CORE=1
- COMPILE_SIMULATOR=0
- COMPILE_SPS_IMAGE=1
- COMPILE_ESPIA=0
- COMPILE_FRELON=0
- COMPILE_MAXIPIX=0
- COMPILE_PILATUS=0
- COMPILE_BASLER=0
- COMPILE_PROSILICA=0
- COMPILE_ROPERSCIENTIFIC=0
- COMPILE_MYTHEN=0
- COMPILE_ADSC=0
- COMPILE_UEYE=0
- COMPILE_XH=0
- COMPILE_XSPRESS3=0
- COMPILE_XPAD=0
- COMPILE_PERKINELMER=0
- COMPILE_ANDOR=0
- COMPILE_PHOTONICSCIENCE=0
- COMPILE_PCO=0
- COMPILE_MARCCD=0
- COMPILE_POINTGREY=0
- COMPILE_IMXPAD=0
- COMPILE_DEXELA=0
- COMPILE_ZWO=1
- COMPILE_RAYONIXHS=0
- COMPILE_CBF_SAVING=0
- COMPILE_NXS_SAVING=0
- COMPILE_FITS_SAVING=0
- COMPILE_EDFGZ_SAVING=0
- COMPILE_TIFF_SAVING=0
- COMPILE_CONFIG=1
- LINK_STRICT_VERSION=0
- export COMPILE_CORE COMPILE_SPS_IMAGE COMPILE_SIMULATOR \
-       COMPILE_ESPIA COMPILE_FRELON COMPILE_MAXIPIX COMPILE_PILATUS \
-       COMPILE_BASLER COMPILE_PROSILICA COMPILE_ROPERSCIENTIFIC COMPILE_ADSC \
-       COMPILE_MYTHEN COMPILE_UEYE COMPILE_XH COMPILE_XSPRESS3 COMPILE_XPAD COMPILE_PERKINELMER \
-       COMPILE_ANDOR COMPILE_PHOTONICSCIENCE COMPILE_PCO COMPILE_MARCCD COMPILE_DEXELA COMPILE_ZWO\
-       COMPILE_POINTGREY COMPILE_IMXPAD COMPILE_RAYONIXHS COMPILE_CBF_SAVING COMPILE_NXS_SAVING \
-       COMPILE_FITS_SAVING COMPILE_EDFGZ_SAVING COMPILE_TIFF_SAVING COMPILE_CONFIG\
-       LINK_STRICT_VERSION
+  -DLIMACAMERA_ZWO=true
 
--  start the compilation :ref:`linux_compilation`
-
--  finally for the Tango server installation :ref:`tango_installation`
+For the Tango server installation, refers to :ref:`tango_installation`.
 
 Initialisation and Capabilities
 ```````````````````````````````
