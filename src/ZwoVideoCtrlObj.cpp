@@ -49,42 +49,59 @@ void lima::Zwo::VideoCtrlObj::getVideoMode(VideoMode&) const
 	DEB_MEMBER_FUNCT();
 }
 
-void lima::Zwo::VideoCtrlObj::setLive(bool)
+void lima::Zwo::VideoCtrlObj::setLive(bool live)
 {
 	DEB_MEMBER_FUNCT();
+	DEB_PARAM() << DEB_VAR1(live);
+	m_camera.setLive(live);
 }
 
-void lima::Zwo::VideoCtrlObj::getLive(bool &) const
+void lima::Zwo::VideoCtrlObj::getLive(bool &live) const
 {
 	DEB_MEMBER_FUNCT();
+	live = m_camera.getLive();
+	DEB_RETURN() << DEB_VAR1(live);
 }
 
-void lima::Zwo::VideoCtrlObj::getGain(double &) const
+void lima::Zwo::VideoCtrlObj::getGain(double &gain) const
 {
 	DEB_MEMBER_FUNCT();
+	gain = m_camera.getGain();
+	DEB_RETURN() << DEB_VAR1(gain);
 }
 
-void lima::Zwo::VideoCtrlObj::setGain(double)
+void lima::Zwo::VideoCtrlObj::setGain(double gain)
 {
 	DEB_MEMBER_FUNCT();
+	DEB_PARAM() << DEB_VAR1(gain);
+	m_camera.setGain(gain);
 }
 
 void lima::Zwo::VideoCtrlObj::checkBin(Bin &bin)
 {
 	DEB_MEMBER_FUNCT();
+	DEB_PARAM() << DEB_VAR1(bin);
+	m_camera.checkBin(bin);
 }
 
 void lima::Zwo::VideoCtrlObj::checkRoi(const Roi &set_roi, Roi &hw_roi)
 {
 	DEB_MEMBER_FUNCT();
+	DEB_PARAM() << DEB_VAR1(set_roi);
+	m_camera.checkRoi(set_roi, hw_roi);
+	DEB_RETURN() << DEB_VAR1(hw_roi);
 }
 
-void lima::Zwo::VideoCtrlObj::setBin(const Bin &)
+void lima::Zwo::VideoCtrlObj::setBin(const Bin &bin)
 {
 	DEB_MEMBER_FUNCT();
+	DEB_PARAM() << DEB_VAR1(bin);
+	m_camera.setBin(bin);
 }
 
-void lima::Zwo::VideoCtrlObj::setRoi(const Roi &)
+void lima::Zwo::VideoCtrlObj::setRoi(const Roi &set_roi)
 {
 	DEB_MEMBER_FUNCT();
+	DEB_PARAM() << DEB_VAR1(set_roi);
+	m_camera.setRoi(set_roi);
 }

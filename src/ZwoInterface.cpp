@@ -45,7 +45,7 @@ lima::Zwo::Interface::Interface(Camera &cam)
 	// m_cap_list.push_back(HwCap(&m_buffer));
 	m_cap_list.push_back(HwCap(cam.getBufferCtrlObj()));
 	// m_cap_list.push_back(HwCap(&m_saving));
-	// m_cap_list.push_back(HwCap(&m_video));
+	m_cap_list.push_back(HwCap(&m_video));
 	m_cap_list.push_back(HwCap(&m_shutter));
 }
 
