@@ -561,27 +561,27 @@ void lima::Zwo::Camera::setRoi(const Roi &roi)
 	DEB_PARAM() << DEB_VAR1(roi);
 	if (id() != -1)
 	{
-		Point o = roi.getTopLeft();
-		ASI_ERROR_CODE status = ASISetStartPos(id(), o.x, o.y);
+		Size s = roi.getSize();
+		// 0 values in width and/or height will be interpreted as maximum values of the camera
+		if (s.isEmpty())
+		{
+			DEB_TRACE() << "Roi size is: " << s;
+			if (!s.getWidth())
+				s = Point(hwSize().getWidth() / m_bin, s.getHeight());
+			if (!s.getHeight())
+				s = Point(s.getWidth(), hwSize().getHeight() / m_bin);
+			DEB_TRACE() << "Roi size changed to: " << s;
+		}
+		ASI_ERROR_CODE status = ASISetROIFormat(id(), s.getWidth(), s.getHeight(), m_bin, m_imageType);
 		if (status == ASI_SUCCESS)
 		{
-			Size s = roi.getSize();
-			// 0 values in width and/or height will be interpreted as maximum values of the camera
-			if (s.isEmpty())
-			{
-				DEB_TRACE() << "Roi size is: " << s;
-				if (!s.getWidth())
-					s = Point(hwSize().getWidth() / m_bin, s.getHeight());
-				if (!s.getHeight())
-					s = Point(s.getWidth(), hwSize().getHeight() / m_bin);
-				DEB_TRACE() << "Roi size changed to: " << s;
-			}
-			status = ASISetROIFormat(id(), s.getWidth(), s.getHeight(), m_bin, m_imageType);
+			Point o = roi.getTopLeft();
+			status = ASISetStartPos(id(), o.x, o.y);
 			if (status != ASI_SUCCESS)
-				DEB_ERROR() << "Could not set 'ROI width and height': " << errorText(status);
+				DEB_ERROR() << "Could not set 'ROI x and y': " << errorText(status);
 		}
 		else
-			DEB_ERROR() << "Could not set 'ROI x and y': " << errorText(status);
+			DEB_ERROR() << "Could not set 'ROI width and height': " << errorText(status);
 	}
 	else
 		DEB_ERROR() << "No camera available";
