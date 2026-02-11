@@ -158,29 +158,27 @@ install(
   INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}  # this does not actually install anything (but used by downstream projects)
 )
 
-# Do not install SDK and USB rules if building with Conda Build
-if (LIMA_INSTALL_ZWO_SDK)
-
-if ("${CMAKE_SYSTEM}" MATCHES "Linux")
-  install(
-    FILES sdk/lib/asi.rules DESTINATION /etc/udev/rules.d/ COMPONENT config
-  )
+if(NOT ("${LIMAINSTALL_ZWO_SDK}" STREQUAL ""))
+  set(LIMAINSTALL_ZWO_SDK "${LIMAINSTALL_ZWO_SDK}" CACHE BOOL "install zwo sdk?" FORCE)
+else()
+  set(LIMAINSTALL_ZWO_SDK ON CACHE BOOL "install zwo sdk?" FORCE)
 endif()
 
-if (NOT WIN32)
-  install(
-    FILES ${ZWO_LIB_PATH}/libASICamera2.a
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
-  install(
-    FILES ${ZWO_LIB_PATH}/libASICamera2.so.1.26 ${ZWO_LIB_PATH}/libASICamera2.so
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  )
-  install(
-    FILES sdk/lib/asi.rules
-    DESTINATION /etc/udev/rules.d/
-    COMPONENT config
-  )
+if (LIMAINSTALL_ZWO_SDK)
+  if (NOT WIN32)
+    install(
+      FILES ${ZWO_LIB_PATH}/libASICamera2.a
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+    install(
+      FILES ${ZWO_LIB_PATH}/libASICamera2.so.1.26 ${ZWO_LIB_PATH}/libASICamera2.so
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+    install(
+      FILES sdk/lib/asi.rules
+      DESTINATION /etc/udev/rules.d/
+      COMPONENT config
+    )
 endif()
 
 endif(LIMA_INSTALL_ZWO_SDK)
@@ -199,6 +197,7 @@ install(
   COMPONENT devel
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
+endif()
 
 if(LIMA_ENABLE_PYTHON)
   install(
