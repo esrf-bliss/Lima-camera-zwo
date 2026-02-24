@@ -89,8 +89,8 @@ END:
 int  main()
 {
 	int width;
-	char* bayer[] = {"RG","BG","GR","GB"};
-	char* controls[MAX_CONTROL] = {"Exposure", "Gain", "Gamma", "WB_R", "WB_B", "Brightness", "USB Traffic"};
+	const char* bayer[] = {"RG","BG","GR","GB"};
+	const char* controls[MAX_CONTROL] = {"Exposure", "Gain", "Gamma", "WB_R", "WB_B", "Brightness", "USB Traffic"};
 
 	int height;
 	int i;
@@ -389,7 +389,7 @@ int  main()
 			iStrLen = strlen(buf);
 			CvRect rect = cvRect(iTextX, iTextY - 15, iStrLen* 11, 20);
 			cvSetImageROI(pRgb , rect);
-			cvSet(pRgb, CV_RGB(180, 180, 180));
+			// cvSet(pRgb, CV_RGB(180, 180, 180));
 			cvResetImageROI(pRgb);
 		}
 		cvText(pRgb, buf, iTextX,iTextY );

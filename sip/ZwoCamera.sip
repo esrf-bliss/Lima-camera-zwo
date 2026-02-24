@@ -95,6 +95,22 @@ public:
 	void setCooler(const bool flag);
 
 	bool getCooler();
+
+	// void setFlip(const ASI_FLIP_STATUS);
+
+	// ASI_FLIP_STATUS getFlip(void);
+
+	HwBufferCtrlObj *getBufferCtrlObj();
+
+	bool hasHwBinning();
+
+	void setGain(const double &gain /In/);
+
+	double getGain();
+
+	void setLive(const bool &live /In/);
+
+	bool getLive() const;
 	
 private:
 	Camera(const Zwo::Camera&);

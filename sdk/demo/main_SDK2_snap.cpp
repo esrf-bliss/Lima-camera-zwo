@@ -171,7 +171,9 @@ int  main()
 	ASIGetControlValue(CamNum, ASI_TEMPERATURE, &ltemp, &bAuto);
 	printf("sensor temperature:%02f\n", (float)ltemp/10.0);
 
-	int bin = 1, Image_type;
+	int bin = 1;
+	ASI_IMG_TYPE Image_type = ASI_IMG_RAW16;
+	ASISetROIFormat(CamNum, iMaxWidth, iMaxHeight, 1, (ASI_IMG_TYPE)Image_type);
 
 	do{
 		printf("\nPlease input the <width height bin image_type> with one space, ie. 640 480 2 0. use max resolution if input is 0. Press ESC when video window is focused to quit capture\n");
@@ -182,13 +184,15 @@ int  main()
 			width = iMaxWidth;
 			height = iMaxHeight;
 		}
+		Image_type = ASI_IMG_RAW16;
 
+		printf("\nset image format %d %d %d %d\n", width, height, bin, Image_type);
 	}
-	while(ASI_SUCCESS != ASISetROIFormat(CamNum, width, height, bin, (ASI_IMG_TYPE)Image_type));//IMG_RAW8
+	while(ASI_SUCCESS != ASISetROIFormat(CamNum, width, height, bin, Image_type));
 
 	printf("\nset image format %d %d %d %d success, start preview, press ESC to stop \n", width, height, bin, Image_type);
 
-	ASIGetROIFormat(CamNum, &width, &height, &bin, (ASI_IMG_TYPE*)&Image_type);
+	ASIGetROIFormat(CamNum, &width, &height, &bin, &Image_type);
 	int displayWid = 1280, displayHei = 960;
 	if(Image_type == ASI_IMG_RAW16)
 		pRgb=cvCreateImage(cvSize(displayWid, displayHei), IPL_DEPTH_16U, 1);
@@ -206,8 +210,8 @@ int  main()
 	int exp_ms;
 	printf("Please input exposure time(ms)\n");
 	scanf("%d", &exp_ms);
-	ASISetControlValue(CamNum, ASI_EXPOSURE, exp_ms*1000, ASI_FALSE);
 	ASISetControlValue(CamNum, ASI_BANDWIDTHOVERLOAD, 40, ASI_FALSE);
+	ASISetControlValue(CamNum, ASI_EXPOSURE, exp_ms*1000, ASI_FALSE);
 
 
 
@@ -240,10 +244,13 @@ int  main()
 		while(status == ASI_EXP_WORKING)
 		{
 			ASIGetExpStatus(CamNum, &status);
+			usleep(1000);
 		}
 		if(status == ASI_EXP_SUCCESS)
 		{
-			ASIGetDataAfterExp(CamNum, imgBuf, imgSize);
+			printf("image size: %d\n", imgSize);
+			err = ASIGetDataAfterExp(CamNum, imgBuf, imgSize);
+			printf("success: %d\n", err);
 			// sprintf(szTemp, "saveImage%d.jpg", bMain);
 
 			if(Image_type==ASI_IMG_RAW16)
@@ -292,7 +299,7 @@ int  main()
 			iStrLen = strlen(buf);
 			CvRect rect = cvRect(iTextX, iTextY - 15, iStrLen* 11, 20);
 			cvSetImageROI(pRgb , rect);
-			cvSet(pRgb, CV_RGB(180, 180, 180));
+			// cvSet(pRgb, CV_RGB(180, 180, 180));
 			cvResetImageROI(pRgb);
 		}
 		cvText(pRgb, buf, iTextX,iTextY );
@@ -302,14 +309,14 @@ int  main()
 			bChangeFormat = 0;
 			bDisplay = false;
 			pthread_join(thread_display, &retval);
-			cvReleaseImage(&pRgb);
+			// cvReleaseImage(&pRgb);
 
 			switch(change)
 			{
 				 case change_imagetype:
-					Image_type++;
+					Image_type = (ASI_IMG_TYPE)(Image_type + 1);
 					if(Image_type > 3)
-						Image_type = 0;
+						Image_type = ASI_IMG_RAW8;
 
 					break;
 				case change_bin:
@@ -325,12 +332,14 @@ int  main()
 						width*=2;
 						height*=2;
 					}
+					imgSize = width*height*(1 + (Image_type==ASI_IMG_RAW16));
 					break;
 				case change_size_smaller:
 					if(width > 320 && height > 240)
 					{
 						width/= 2;
 						height/= 2;
+						imgSize = width*height*(1 + (Image_type==ASI_IMG_RAW16));
 					}
 					break;
 
@@ -340,17 +349,23 @@ int  main()
 					{
 						width*= 2;
 						height*= 2;
+						imgSize = width*height*(1 + (Image_type==ASI_IMG_RAW16));
 					}
 					break;
 			}
-			ASISetROIFormat(CamNum, width, height, bin, (ASI_IMG_TYPE)Image_type);
-			ASIGetROIFormat(CamNum, &width, &height, &bin, (ASI_IMG_TYPE*)&Image_type);
+			err = ASISetROIFormat(CamNum, width, height, bin, (ASI_IMG_TYPE)Image_type);
+			printf(">%d: %d, %dx%d, %d, %d\n", err, CamNum, width, height, bin, Image_type);
+			usleep(1000000);
+			err = ASIGetROIFormat(CamNum, &width, &height, &bin, (ASI_IMG_TYPE*)&Image_type);
+			printf("<%d: %d, %dx%d, %d, %d\n", err, CamNum, width, height, bin, Image_type);
+			/*
 			if(Image_type == ASI_IMG_RAW16)
 				pRgb=cvCreateImage(cvSize(width,height), IPL_DEPTH_16U, 1);
 			else if(Image_type == ASI_IMG_RGB24)
 				pRgb=cvCreateImage(cvSize(width,height), IPL_DEPTH_8U, 3);
 			else
 				pRgb=cvCreateImage(cvSize(width,height), IPL_DEPTH_8U, 1);
+			*/
 			bDisplay = 1;
 			pthread_create(&thread_display, NULL, Display, (void*)pRgb);
 		}

@@ -167,8 +167,8 @@ void* Display(void* params)
 int  main()
 {
 	int width;
-	char* bayer[] = {"RG","BG","GR","GB"};
-	char* controls[MAX_CONTROL] = {"Exposure", "Gain", "Gamma", "WB_R", "WB_B", "Brightness", "USB Traffic"};
+	const char* bayer[] = {"RG","BG","GR","GB"};
+	const char* controls[MAX_CONTROL] = {"Exposure", "Gain", "Gamma", "WB_R", "WB_B", "Brightness", "USB Traffic"};
 
 	int height;
 	int i;

@@ -4,7 +4,7 @@ platform = x64
 CC = g++
 #INCLIB = /usr/local/include
 #LDLIB = /usr/local/lib
-OPENCV = -lopencv_core -lopencv_highgui -lopencv_imgproc#$(shell pkg-config --cflags opencv) $(shell pkg-config --libs opencv) -I/usr/include/opencv2
+OPENCV = -lopencv_core -lopencv_highgui -lopencv_imgproc -I/usr/include/opencv4 #$(shell pkg-config --cflags opencv) $(shell pkg-config --libs opencv) -I/usr/include/opencv2
 #USB =  -I../libusb/include  -L../libusb/$(platform) -lusb-1.0
 
 
